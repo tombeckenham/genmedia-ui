@@ -38,14 +38,14 @@ genmedia setup --non-interactive --api-key "$FAL_KEY"
 genmedia setup --non-interactive --output-format json --no-auto-load-env --auto-update
 ```
 
-| Flag | Description |
-|---|---|
-| `--non-interactive`, `-y` | Skip all prompts. Required when there is no TTY. |
-| `--api-key <key>` | API key to save. Pass `""` to clear the saved key. |
-| `--no-save-key` | With `--api-key`, do not persist the key to `config.json` (use `FAL_KEY` at runtime instead). |
-| `--output-format <auto\|json\|standard>` | Default output mode. |
-| `--auto-load-env` / `--no-auto-load-env` | Toggle auto-loading `FAL_KEY` from a project `.env`. |
-| `--auto-update` / `--no-auto-update` | Toggle background update checks. |
+| Flag                                     | Description                                                                                   |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `--non-interactive`, `-y`                | Skip all prompts. Required when there is no TTY.                                              |
+| `--api-key <key>`                        | API key to save. Pass `""` to clear the saved key.                                            |
+| `--no-save-key`                          | With `--api-key`, do not persist the key to `config.json` (use `FAL_KEY` at runtime instead). |
+| `--output-format <auto\|json\|standard>` | Default output mode.                                                                          |
+| `--auto-load-env` / `--no-auto-load-env` | Toggle auto-loading `FAL_KEY` from a project `.env`.                                          |
+| `--auto-update` / `--no-auto-update`     | Toggle background update checks.                                                              |
 
 API keys: <https://fal.ai/dashboard/keys>.
 
@@ -64,15 +64,15 @@ genmedia models "text to image" --no-classify # skip auto-category inference
 
 When `--category` is omitted and a query is supplied, the CLI infers the category from the query (same classifier the smart router uses) and applies it server-side. JSON output includes `inferred_category` so you can see what was inferred. Pass `--no-classify` to disable, or set `--category <cat>` to override.
 
-| Option | Description |
-|---|---|
-| `--category` | `text-to-image`, `image-to-video`, `text-to-speech`, etc. Explicit values always win over inferred. |
-| `--no-classify` | Skip auto-inference of `--category` from the query. |
-| `--status` | `active` (default), `deprecated`, `all` |
-| `--limit` | Max results (default 20) |
-| `--cursor` | Pagination token from a previous response |
-| `--endpoint_id` | Fetch specific model(s), comma-separated or repeated |
-| `--expand` | `openapi-3.0`, `enterprise_status` |
+| Option          | Description                                                                                         |
+| --------------- | --------------------------------------------------------------------------------------------------- |
+| `--category`    | `text-to-image`, `image-to-video`, `text-to-speech`, etc. Explicit values always win over inferred. |
+| `--no-classify` | Skip auto-inference of `--category` from the query.                                                 |
+| `--status`      | `active` (default), `deprecated`, `all`                                                             |
+| `--limit`       | Max results (default 20)                                                                            |
+| `--cursor`      | Pagination token from a previous response                                                           |
+| `--endpoint_id` | Fetch specific model(s), comma-separated or repeated                                                |
+| `--expand`      | `openapi-3.0`, `enterprise_status`                                                                  |
 
 ## schema: inspect inputs/outputs
 
@@ -81,8 +81,8 @@ genmedia schema fal-ai/flux/dev
 genmedia schema fal-ai/flux/dev --format openapi
 ```
 
-| Option | Description |
-|---|---|
+| Option     | Description                                          |
+| ---------- | ---------------------------------------------------- |
 | `--format` | `compact` (default) or `openapi` (full OpenAPI JSON) |
 
 Always run `schema` before `run` for an unfamiliar endpoint. The exact field names matter, guessed flags fail with 422.
@@ -136,12 +136,12 @@ genmedia run fal-ai/flux/dev --help # introspect parameters as CLI flags
 
 Any model input parameter can be passed as `--<param> <value>`. Run `genmedia run <endpoint_id> --help` to see a model's accepted parameters as CLI flags, or `genmedia schema <endpoint_id>` for the same as JSON.
 
-| Option | Description |
-|---|---|
-| `<positional>` | Endpoint id (contains `/`) → explicit run. Otherwise → smart routing prompt. |
-| `--<param>` | Any model input parameter (e.g. `--prompt`, `--num_images`). For smart routing, `prompt` is filled from the positional automatically. |
-| `--logs` | Stream logs while the model runs (pretty mode only) |
-| `--async` | Submit to queue without waiting, returns a `request_id` |
+| Option                  | Description                                                                                                                                                                                                                                                                                                                                 |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<positional>`          | Endpoint id (contains `/`) → explicit run. Otherwise → smart routing prompt.                                                                                                                                                                                                                                                                |
+| `--<param>`             | Any model input parameter (e.g. `--prompt`, `--num_images`). For smart routing, `prompt` is filled from the positional automatically.                                                                                                                                                                                                       |
+| `--logs`                | Stream logs while the model runs (pretty mode only)                                                                                                                                                                                                                                                                                         |
+| `--async`               | Submit to queue without waiting, returns a `request_id`                                                                                                                                                                                                                                                                                     |
 | `--download [template]` | Save every media URL in the result. Optional template uses `{index}`, `{name}`, `{ext}`, `{request_id}` placeholders. Omitted → cwd with source file names. Trailing `/` or existing dir → dir + source names. Plain filename + multiple outputs → `_1`, `_2` collision suffixes. Downloaded paths appear under `downloaded_files` in JSON. |
 
 ## status: async job
@@ -154,11 +154,11 @@ genmedia status fal-ai/veo3.1 <request_id> --cancel
 genmedia status fal-ai/veo3.1 <request_id> --download ./out/ # implies --result
 ```
 
-| Option | Description |
-|---|---|
-| `--result` | Fetch the completed result |
-| `--logs` | Show logs verbosely |
-| `--cancel` | Cancel the queued job |
+| Option                  | Description                                           |
+| ----------------------- | ----------------------------------------------------- |
+| `--result`              | Fetch the completed result                            |
+| `--logs`                | Show logs verbosely                                   |
+| `--cancel`              | Cancel the queued job                                 |
 | `--download [template]` | Same template syntax as on `run`. Implies `--result`. |
 
 ## upload: file to fal.ai CDN
@@ -288,12 +288,12 @@ genmedia pricing <endpoint_id> --json
 
 ## Errors
 
-| Symptom | Likely cause | Fix |
-|---|---|---|
+| Symptom                    | Likely cause                               | Fix                                                                 |
+| -------------------------- | ------------------------------------------ | ------------------------------------------------------------------- |
 | `422 Unprocessable Entity` | Wrong field name or missing required field | `genmedia schema <endpoint_id> --json` and read `validation_errors` |
-| `401 Unauthorized` | Missing or invalid API key | `genmedia setup` or `export FAL_KEY=…` |
-| `Endpoint not found` | Wrong endpoint ID, deprecated, or typo | `genmedia models "<task>" --json` to discover |
-| Slow / timeout | Long-running generation | Use `--async`, then `genmedia status … --result` |
+| `401 Unauthorized`         | Missing or invalid API key                 | `genmedia setup` or `export FAL_KEY=…`                              |
+| `Endpoint not found`       | Wrong endpoint ID, deprecated, or typo     | `genmedia models "<task>" --json` to discover                       |
+| Slow / timeout             | Long-running generation                    | Use `--async`, then `genmedia status … --result`                    |
 
 ## Environment variables
 

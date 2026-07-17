@@ -1,13 +1,13 @@
 ---
 name: genmedia
 description: >
- Use the genmedia CLI to search, inspect, run, and manage 1200+ fal.ai model
- endpoints. Trigger when the user mentions "genmedia", "fal CLI", or asks to
- "search models", "run a model", "fetch schema", "check pricing", "upload to
- fal", "queue async job", "track request", or any direct interaction with the
- fal.ai endpoint catalog. This is the foundational skill. Every other
- fal.ai-related skill in this repo executes its work through genmedia
- commands. Use `--json` whenever the output will be parsed by an agent.
+  Use the genmedia CLI to search, inspect, run, and manage 1200+ fal.ai model
+  endpoints. Trigger when the user mentions "genmedia", "fal CLI", or asks to
+  "search models", "run a model", "fetch schema", "check pricing", "upload to
+  fal", "queue async job", "track request", or any direct interaction with the
+  fal.ai endpoint catalog. This is the foundational skill. Every other
+  fal.ai-related skill in this repo executes its work through genmedia
+  commands. Use `--json` whenever the output will be parsed by an agent.
 ---
 
 # genmedia CLI: fal.ai endpoint runner
@@ -27,19 +27,19 @@ For the full command surface (every flag, every option, every example), see [ref
 
 ## Command index
 
-| Command | Purpose |
-|---------|---------|
-| `genmedia setup` | Configure API key, output mode, auto-update |
-| `genmedia models <query>` | Search the catalog (or `--category`, or `--endpoint_id`) |
-| `genmedia schema <endpoint_id>` | Inspect inputs/outputs (compact or `--format openapi`) |
-| `genmedia run <endpoint_id> --<param> <value>` | Execute a model |
-| `genmedia status <endpoint_id> <request_id>` | Poll an async job (with `--result`, `--logs`, `--cancel`, `--download`) |
-| `genmedia upload <path-or-url>` | Upload a local file or remote URL to the fal.ai CDN |
-| `genmedia pricing <endpoint_id>` | Check cost per call |
-| `genmedia docs <query>` | Search fal.ai documentation |
-| `genmedia init` | Install the default skill bundle into `.agents/skills/` or `.claude/skills/` |
-| `genmedia skills <list|install|update|remove>` | Manage installed agent skills |
-| `genmedia version` / `genmedia update` | Check or apply CLI updates |
+| Command                                        | Purpose                                                                      |
+| ---------------------------------------------- | ---------------------------------------------------------------------------- |
+| `genmedia setup`                               | Configure API key, output mode, auto-update                                  |
+| `genmedia models <query>`                      | Search the catalog (or `--category`, or `--endpoint_id`)                     |
+| `genmedia schema <endpoint_id>`                | Inspect inputs/outputs (compact or `--format openapi`)                       |
+| `genmedia run <endpoint_id> --<param> <value>` | Execute a model                                                              |
+| `genmedia status <endpoint_id> <request_id>`   | Poll an async job (with `--result`, `--logs`, `--cancel`, `--download`)      |
+| `genmedia upload <path-or-url>`                | Upload a local file or remote URL to the fal.ai CDN                          |
+| `genmedia pricing <endpoint_id>`               | Check cost per call                                                          |
+| `genmedia docs <query>`                        | Search fal.ai documentation                                                  |
+| `genmedia init`                                | Install the default skill bundle into `.agents/skills/` or `.claude/skills/` |
+| `genmedia skills <list                         | install                                                                      | update | remove>` | Manage installed agent skills |
+| `genmedia version` / `genmedia update`         | Check or apply CLI updates                                                   |
 
 ## Quick patterns
 

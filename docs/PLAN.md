@@ -71,7 +71,7 @@ The "mission control" feel; most demoable per unit effort.
 
 ### Phase 6 — Close the loop with Claude
 
-1. Companion skill (`docs/skill/` → installed as `storyboard` skill): teaches Claude the storyboard.json schema, the scene_id naming convention for `--download` paths, recording request_ids for async jobs, and the habit: *before generating, re-read the board; treat notes + rejected takes as direction.*
+1. Companion skill (`docs/skill/` → installed as `storyboard` skill): teaches Claude the storyboard.json schema, the scene_id naming convention for `--download` paths, recording request_ids for async jobs, and the habit: _before generating, re-read the board; treat notes + rejected takes as direction._
 2. "Direction queue": UI writes structured requests (`regenerate scene 2 with note X`) into `storyboard.json.requests[]`; skill tells Claude to drain them.
 3. Stretch — schema-driven tweak forms: `genmedia schema <endpoint> --json` → auto-generated shadcn form → re-run via server shell-out.
 
@@ -92,22 +92,28 @@ The "mission control" feel; most demoable per unit effort.
   "updated_at": 1752800000000,
   "scenes": [
     {
-      "id": "scene-01",                  // used in --download paths: ./takes/scene-01/{request_id}.mp4
+      "id": "scene-01", // used in --download paths: ./takes/scene-01/{request_id}.mp4
       "title": "Drone approach",
       "prompt": "aerial drone shot of a lighthouse at dusk...",
-      "status": "ready",                 // draft | queued | generating | ready | needs-review
-      "notes": "more golden hour",       // human → Claude
-      "selected_take": "req_abc123",     // request_id of chosen candidate
+      "status": "ready", // draft | queued | generating | ready | needs-review
+      "notes": "more golden hour", // human → Claude
+      "selected_take": "req_abc123", // request_id of chosen candidate
       "starred": ["req_abc123"],
       "takes": [
-        { "request_id": "req_abc123", "endpoint_id": "fal-ai/veo3", "path": "takes/scene-01/req_abc123.mp4", "kind": "video" }
+        {
+          "request_id": "req_abc123",
+          "endpoint_id": "fal-ai/veo3",
+          "path": "takes/scene-01/req_abc123.mp4",
+          "kind": "video",
+        },
       ],
-      "pending": [                       // async jobs in flight (Claude records these)
-        { "request_id": "req_def456", "endpoint_id": "fal-ai/veo3" }
-      ]
-    }
+      "pending": [
+        // async jobs in flight (Claude records these)
+        { "request_id": "req_def456", "endpoint_id": "fal-ai/veo3" },
+      ],
+    },
   ],
-  "requests": []                         // UI → Claude direction queue
+  "requests": [], // UI → Claude direction queue
 }
 ```
 

@@ -28,18 +28,14 @@
         },
         {
           "kind": "cursor",
-          "paths": [
-            ".cursor/rules/genmedia.mdc"
-          ],
+          "paths": [".cursor/rules/genmedia.mdc"],
           "sha256": {
             ".cursor/rules/genmedia.mdc": "2e89979b58e2d95e57082bda5dc45df20b3c6daa6087069cd62112e777de7d4e"
           }
         },
         {
           "kind": "agents-md",
-          "paths": [
-            "AGENTS.md"
-          ],
+          "paths": ["AGENTS.md"],
           "sha256": {
             "AGENTS.md": "e4e57a516361b774edccdeda6695d83a62fb5cb89ad29a5d3775f109a2e60ac2"
           }

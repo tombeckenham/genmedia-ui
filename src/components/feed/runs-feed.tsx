@@ -37,7 +37,9 @@ function RunCard({ run, isNew }: { run: RunRecord; isNew: boolean }) {
           <span className="truncate font-mono text-xs text-teal-300">{run.endpoint_id}</span>
           <span className="flex shrink-0 items-center gap-1 text-[11px] text-zinc-500">
             <Clock className="size-3" />
-            {formatRelativeTime(run.ts)}
+            {/* Relative time depends on Date.now(); server and client renders can
+                disagree across a rounding boundary — keep the server text. */}
+            <span suppressHydrationWarning>{formatRelativeTime(run.ts)}</span>
           </span>
         </div>
 

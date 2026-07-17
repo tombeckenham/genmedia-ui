@@ -75,7 +75,8 @@ function MissionControl() {
               No sessions found in the gallery yet.
             </p>
           ) : (
-            <RunsFeed runs={runs} />
+            // Keyed by session so the "seen runs" animation state resets on switch.
+            <RunsFeed key={selectedId} runs={runs} />
           )}
         </section>
       </div>

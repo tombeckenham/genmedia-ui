@@ -38,7 +38,7 @@ export function SessionPicker({
               <span className="truncate">{sessionLabel(session)}</span>
               <span className="text-[11px] text-zinc-500">
                 {session.run_count} runs · {session.asset_count} assets ·{' '}
-                {formatRelativeTime(session.updated_at)}
+                <span suppressHydrationWarning>{formatRelativeTime(session.updated_at)}</span>
               </span>
             </span>
           </SelectItem>

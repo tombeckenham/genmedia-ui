@@ -70,7 +70,8 @@ function JobRow({
     ...jobQuery(endpointId, requestId),
     enabled: !completedInRuns,
     retry: 1,
-    refetchInterval: (q) => (isTerminal(normalizeStatus(q.state.data)) ? false : 3_000),
+    refetchInterval: (q) =>
+      q.state.status === 'error' || isTerminal(normalizeStatus(q.state.data)) ? false : 3_000,
   })
 
   const status: DisplayStatus = completedInRuns

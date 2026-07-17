@@ -31,7 +31,7 @@
       "id": "scene-02",
       "title": "Waves at the rocks",
       "prompt": "Low angle cinematic shot of powerful ocean waves crashing against dark rocks below a lighthouse at dusk, backlit sea spray, slow motion feel",
-      "status": "generating",
+      "status": "ready",
       "notes": "",
       "selected_take": "019f725d-fbfb-7030-862e-d1262380f252",
       "starred": [],
@@ -41,14 +41,15 @@
           "endpoint_id": "bytedance/seedance-2.0/mini/text-to-video",
           "path": "takes/scene-02/019f725d-fbfb-7030-862e-d1262380f252.mp4",
           "kind": "video"
-        }
-      ],
-      "pending": [
+        },
         {
           "request_id": "019f725d-f3cf-74b1-b8b9-ff7d5b00a824",
-          "endpoint_id": "bytedance/seedance-2.0/mini/text-to-video"
+          "endpoint_id": "bytedance/seedance-2.0/mini/text-to-video",
+          "path": "takes/scene-02/019f725d-f3cf-74b1-b8b9-ff7d5b00a824.mp4",
+          "kind": "video"
         }
-      ]
+      ],
+      "pending": []
     },
     {
       "id": "scene-03",

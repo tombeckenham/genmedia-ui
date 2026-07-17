@@ -11,11 +11,12 @@ bun install            # install deps
 bun run dev            # dev server on http://localhost:3000
 bun run build          # production build (vite + nitro)
 bun run typecheck      # tsc (no emit)
-bun run lint           # eslint (type-aware)
+bun run lint           # oxlint --type-aware (via tsgolint)
 bun run test           # vitest run (all tests)
 bunx vitest run path/to/file.test.tsx        # single test file
 bunx vitest run -t "test name"               # single test by name
-bun run format         # prettier --write + eslint --fix
+bun run format         # oxfmt + oxlint --fix
+bun run check          # oxfmt --check
 bunx shadcn@latest add <component>           # add a shadcn/ui component
 ```
 
@@ -23,12 +24,13 @@ bunx shadcn@latest add <component>           # add a shadcn/ui component
 
 This repo is deliberately strict. Do not weaken these settings; write code that passes them.
 
+Linting is **oxlint** with type-aware rules (`oxlint-tsgolint`), configured in `.oxlintrc.json`; formatting is **oxfmt** (`.oxfmtrc.json`). There is no eslint or prettier — oxlint's type-aware mode runs on the native TS toolchain, which is what allows this repo to use TypeScript 7 (typescript-eslint could not).
+
 - **No `any`** — explicit (`no-explicit-any`) or flowing through expressions (`no-unsafe-assignment/argument/call/member-access/return` are all errors). Type unknown data as `unknown` and narrow with checks or zod.
 - **Casting is limited** — no `!` non-null assertions, no `as` on object literals, and redundant assertions are errors. Prefer narrowing; use `as` only when you genuinely know more than the compiler.
 - `noUncheckedIndexedAccess` is on: indexing arrays/records yields `T | undefined` — handle it.
 - `exactOptionalPropertyTypes` is intentionally **off** (it breaks prop spreading in Radix/shadcn components).
-- **TypeScript is pinned to 6.x.** typescript-eslint supports `typescript <6.1.0` only; TS 7 (the native compiler) crashes its parser and kills all type-aware lint rules. Do not bump to 7 until typescript-eslint supports it.
-- `src/routeTree.gen.ts` is generated (excluded from lint) — never edit it by hand.
+- `src/routeTree.gen.ts` is generated (excluded from lint and formatting) — never edit it by hand.
 
 ## Architecture
 

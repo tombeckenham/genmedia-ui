@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "title": "Lighthouse Teaser",
+  "updated_at": 1784330400000,
+  "scenes": [
+    {
+      "id": "scene-01",
+      "title": "Drone approach",
+      "prompt": "Cinematic aerial drone shot slowly approaching a solitary white lighthouse on a rocky headland at dusk, golden hour, waves crashing below, gentle push-in",
+      "status": "ready",
+      "notes": "",
+      "selected_take": "019f725d-e63e-7962-a4b3-41ca94cc7143",
+      "starred": [],
+      "takes": [
+        {
+          "request_id": "019f725d-e63e-7962-a4b3-41ca94cc7143",
+          "endpoint_id": "bytedance/seedance-2.0/mini/text-to-video",
+          "path": "takes/scene-01/019f725d-e63e-7962-a4b3-41ca94cc7143.mp4",
+          "kind": "video"
+        },
+        {
+          "request_id": "019f725d-ecd7-7282-b324-fa66e6e903a7",
+          "endpoint_id": "bytedance/seedance-2.0/mini/text-to-video",
+          "path": "takes/scene-01/019f725d-ecd7-7282-b324-fa66e6e903a7.mp4",
+          "kind": "video"
+        }
+      ],
+      "pending": []
+    },
+    {
+      "id": "scene-02",
+      "title": "Waves at the rocks",
+      "prompt": "Low angle cinematic shot of powerful ocean waves crashing against dark rocks below a lighthouse at dusk, backlit sea spray, slow motion feel",
+      "status": "generating",
+      "notes": "",
+      "selected_take": "019f725d-fbfb-7030-862e-d1262380f252",
+      "starred": [],
+      "takes": [
+        {
+          "request_id": "019f725d-fbfb-7030-862e-d1262380f252",
+          "endpoint_id": "bytedance/seedance-2.0/mini/text-to-video",
+          "path": "takes/scene-02/019f725d-fbfb-7030-862e-d1262380f252.mp4",
+          "kind": "video"
+        }
+      ],
+      "pending": [
+        {
+          "request_id": "019f725d-f3cf-74b1-b8b9-ff7d5b00a824",
+          "endpoint_id": "bytedance/seedance-2.0/mini/text-to-video"
+        }
+      ]
+    },
+    {
+      "id": "scene-03",
+      "title": "The keeper",
+      "prompt": "Silhouette of a lighthouse keeper in the glass lamp room as the rotating beacon light sweeps past camera, blue hour, cinematic interior",
+      "status": "ready",
+      "notes": "",
+      "selected_take": "019f725e-0259-7ea0-9f40-5aa82df54d04",
+      "starred": [],
+      "takes": [
+        {
+          "request_id": "019f725e-0259-7ea0-9f40-5aa82df54d04",
+          "endpoint_id": "bytedance/seedance-2.0/mini/text-to-video",
+          "path": "takes/scene-03/019f725e-0259-7ea0-9f40-5aa82df54d04.mp4",
+          "kind": "video"
+        },
+        {
+          "request_id": "019f725e-0984-7820-a8e3-d0bfdc073083",
+          "endpoint_id": "bytedance/seedance-2.0/mini/text-to-video",
+          "path": "takes/scene-03/019f725e-0984-7820-a8e3-d0bfdc073083.mp4",
+          "kind": "video"
+        }
+      ],
+      "pending": []
+    }
+  ],
+  "requests": []
+}

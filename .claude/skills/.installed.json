@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "skills": [
+    {
+      "name": "genmedia",
+      "description": "Use the genmedia CLI to search, inspect, run, and manage 1200+ fal.ai model endpoints. Trigger when the user mentions \"genmedia\", \"fal CLI\", or asks to \"search models\", \"run a model\", \"fetch schema\", \"check pricing\", \"upload to fal\", \"queue async job\", \"track request\", or any direct interaction with the fal.ai endpoint catalog. This is the foundational skill. Every other fal.ai-related skill in this repo executes its work through genmedia commands. Use `--json` whenever the output will be parsed by an agent.",
+      "files": [
+        ".claude/skills/genmedia/SKILL.md",
+        ".claude/skills/genmedia/references/full-reference.md"
+      ],
+      "sha256": {
+        ".claude/skills/genmedia/SKILL.md": "2e982b5d6a169761a1b260aacce60cce2a47111591eab14d231fa6351f7d96a9",
+        ".claude/skills/genmedia/references/full-reference.md": "98ef94144b47d2501066705a32929bf728c7d6d36eb488e8fd16c738d266681a"
+      },
+      "installedAt": "2026-07-17T23:10:03.978Z",
+      "source": "https://raw.githubusercontent.com/fal-ai-community/skills/refs/heads/main/skills/genmedia",
+      "targets": [
+        {
+          "kind": "claude",
+          "paths": [
+            ".claude/skills/genmedia/SKILL.md",
+            ".claude/skills/genmedia/references/full-reference.md"
+          ],
+          "sha256": {
+            ".claude/skills/genmedia/SKILL.md": "2e982b5d6a169761a1b260aacce60cce2a47111591eab14d231fa6351f7d96a9",
+            ".claude/skills/genmedia/references/full-reference.md": "98ef94144b47d2501066705a32929bf728c7d6d36eb488e8fd16c738d266681a"
+          }
+        },
+        {
+          "kind": "cursor",
+          "paths": [".cursor/rules/genmedia.mdc"],
+          "sha256": {
+            ".cursor/rules/genmedia.mdc": "2e89979b58e2d95e57082bda5dc45df20b3c6daa6087069cd62112e777de7d4e"
+          }
+        },
+        {
+          "kind": "agents-md",
+          "paths": ["AGENTS.md"],
+          "sha256": {
+            "AGENTS.md": "e4e57a516361b774edccdeda6695d83a62fb5cb89ad29a5d3775f109a2e60ac2"
+          }
+        }
+      ]
+    }
+  ]
+}

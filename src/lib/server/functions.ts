@@ -104,7 +104,16 @@ export const getSession = createServerFn({ method: 'GET' })
   .validator(z.object({ id: z.string() }))
   .handler(async ({ data }): Promise<z.infer<typeof sessionPayloadSchema> | null> => {
     if (!isSafeSessionId(data.id)) return null
-    const parsed = sessionPayloadSchema.safeParse(await readJsonFile(sessionDataPath(data.id)))
+    // The CLI rewrites data.json non-atomically; a torn read can make
+    // JSON.parse throw. Treat that the same as unreadable — SSE will trigger
+    // a refetch once the write settles.
+    let raw: unknown
+    try {
+      raw = await readJsonFile(sessionDataPath(data.id))
+    } catch {
+      return null
+    }
+    const parsed = sessionPayloadSchema.safeParse(raw)
     return parsed.success ? parsed.data : null
   })
 

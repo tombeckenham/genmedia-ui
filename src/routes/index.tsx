@@ -5,10 +5,13 @@ import { useLiveEvents } from '#/lib/use-live-events'
 
 export const Route = createFileRoute('/')({
   loader: async ({ context }) => {
-    await Promise.all([
+    const [, activeId] = await Promise.all([
       context.queryClient.ensureQueryData(storyboardQuery),
       context.queryClient.ensureQueryData(activeSessionQuery),
     ])
+    if (activeId !== null) {
+      await context.queryClient.ensureQueryData(sessionQuery(activeId))
+    }
   },
   component: DebugPage,
 })

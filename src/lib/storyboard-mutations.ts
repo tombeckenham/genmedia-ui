@@ -62,19 +62,18 @@ export function setSelectedTake(sceneId: string, requestId: string | null): Stor
   })
 }
 
-// Add or remove a request from a scene's starred list. Toggling reads the
-// current membership, so it must be driven from a single base — the mutation
-// applies it to the cache and the fresh read separately (same base state), and
-// the conflict retry re-reads before re-applying, so a star can't double-add.
-export function toggleStar(sceneId: string, requestId: string): StoryboardTransform {
+// Set a request's starred membership ABSOLUTELY — never a toggle. A relative
+// invert re-applies blindly when the conflict retry re-reads a base another
+// writer just changed (two tabs both starring can end un-starred); an absolute
+// intent is idempotent against any base. Callers compute the desired state
+// from what the user saw when they pressed the key.
+export function setStar(sceneId: string, requestId: string, starred: boolean): StoryboardTransform {
   return (doc) => ({
     ...doc,
     scenes: doc.scenes.map((scene) => {
       if (scene.id !== sceneId) return scene
-      const starred = scene.starred.includes(requestId)
-        ? scene.starred.filter((id) => id !== requestId)
-        : [...scene.starred, requestId]
-      return { ...scene, starred }
+      const without = scene.starred.filter((id) => id !== requestId)
+      return { ...scene, starred: starred ? [...without, requestId] : without }
     }),
   })
 }

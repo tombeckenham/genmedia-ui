@@ -2,9 +2,10 @@ import { getRouteApi, Link } from '@tanstack/react-router'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Star, X } from 'lucide-react'
 import type { Scene } from '#/lib/schemas/storyboard'
-import { setSelectedTake, toggleStar, useStoryboardMutation } from '#/lib/storyboard-mutations'
+import { setSelectedTake, setStar, useStoryboardMutation } from '#/lib/storyboard-mutations'
 import { cn } from '#/lib/utils'
 import { CompareView } from './compare-view'
+import { resolveComparePair, resolveCurrentIndex } from './flipper-logic'
 import { TakeMedia } from './take-media'
 
 const route = getRouteApi('/scene/$sceneId')
@@ -22,13 +23,10 @@ export function Flipper({ scene }: { scene: Scene }) {
   const [comparePlaying, setComparePlaying] = useState(true)
 
   // Current index: URL take wins, then the human's selected take, then the first.
-  const currentIndex = useMemo(() => {
-    const fromUrl = search.take
-    const urlIndex = fromUrl === undefined ? -1 : takes.findIndex((t) => t.request_id === fromUrl)
-    if (urlIndex !== -1) return urlIndex
-    const selectedIndex = takes.findIndex((t) => t.request_id === scene.selected_take)
-    return selectedIndex === -1 ? 0 : selectedIndex
-  }, [search.take, takes, scene.selected_take])
+  const currentIndex = useMemo(
+    () => resolveCurrentIndex(takes, search.take, scene.selected_take),
+    [search.take, takes, scene.selected_take],
+  )
 
   const currentTake = takes[currentIndex]
 
@@ -42,8 +40,11 @@ export function Flipper({ scene }: { scene: Scene }) {
   )
 
   const star = useCallback(() => {
-    if (currentTake !== undefined) mutation.mutate(toggleStar(scene.id, currentTake.request_id))
-  }, [currentTake, mutation, scene.id])
+    if (currentTake === undefined) return
+    // Absolute intent: star iff the user saw it un-starred when pressing space.
+    const next = !scene.starred.includes(currentTake.request_id)
+    mutation.mutate(setStar(scene.id, currentTake.request_id, next))
+  }, [currentTake, mutation, scene.id, scene.starred])
 
   const select = useCallback(() => {
     if (currentTake !== undefined)
@@ -52,14 +53,12 @@ export function Flipper({ scene }: { scene: Scene }) {
 
   // Compare target: the selected take (unless the current take IS the selection),
   // otherwise a neighbour. Null when there's nothing meaningful to compare.
-  const compareOther = useMemo(() => {
-    if (currentTake === undefined) return null
-    const selected = takes.find((t) => t.request_id === scene.selected_take) ?? null
-    if (selected !== null && selected.request_id !== currentTake.request_id) return selected
-    return takes[currentIndex + 1] ?? takes[currentIndex - 1] ?? null
-  }, [takes, scene.selected_take, currentTake, currentIndex])
+  const compareOther = useMemo(
+    () => resolveComparePair(takes, currentIndex, scene.selected_take),
+    [takes, scene.selected_take, currentIndex],
+  )
 
-  const canCompare = takes.length >= 2 && compareOther !== null
+  const canCompare = compareOther !== null
 
   const toggleCompare = useCallback(() => {
     if (compare) {

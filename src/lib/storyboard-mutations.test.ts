@@ -5,7 +5,7 @@ import {
   reorderScenes,
   setSceneNotes,
   setSelectedTake,
-  toggleStar,
+  setStar,
 } from './storyboard-mutations'
 
 function scene(id: string): Scene {
@@ -99,23 +99,35 @@ describe('setSelectedTake', () => {
   })
 })
 
-describe('toggleStar', () => {
-  it('adds the request to the target scene when absent', () => {
-    const next = toggleStar('scene-01', 'req-1')(board('scene-01', 'scene-02'))
+describe('setStar', () => {
+  it('adds the request to the target scene only', () => {
+    const next = setStar('scene-01', 'req-1', true)(board('scene-01', 'scene-02'))
     expect(next.scenes[0]?.starred).toEqual(['req-1'])
     expect(next.scenes[1]?.starred).toEqual([])
   })
 
-  it('removes the request when already starred', () => {
-    const t = toggleStar('scene-01', 'req-1')
-    const starred = t(board('scene-01'))
-    expect(t(starred).scenes[0]?.starred).toEqual([])
+  it('removes the request when set to false', () => {
+    const starred = setStar('scene-01', 'req-1', true)(board('scene-01'))
+    expect(setStar('scene-01', 'req-1', false)(starred).scenes[0]?.starred).toEqual([])
+  })
+
+  it('is idempotent against ANY base (absolute intent survives conflict retries)', () => {
+    const on = setStar('scene-01', 'req-1', true)
+    const base = board('scene-01')
+    const alreadyOn = on(base)
+    // Re-applying to a base where another writer already starred it must not
+    // invert — this is the two-tabs race a toggle would lose.
+    expect(on(alreadyOn).scenes[0]?.starred).toEqual(['req-1'])
+    expect(on(base)).toEqual(on(on(base)))
   })
 
   it('leaves other starred requests intact', () => {
-    const base = setSelectedTake('scene-01', null)(board('scene-01'))
-    const withTwo = toggleStar('scene-01', 'req-2')(toggleStar('scene-01', 'req-1')(base))
-    const next = toggleStar('scene-01', 'req-1')(withTwo)
+    const withTwo = setStar(
+      'scene-01',
+      'req-2',
+      true,
+    )(setStar('scene-01', 'req-1', true)(board('scene-01')))
+    const next = setStar('scene-01', 'req-1', false)(withTwo)
     expect(next.scenes[0]?.starred).toEqual(['req-2'])
   })
 })

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import type { Storyboard, Take } from './schemas/storyboard'
+import { REGENERATE, type DirectionRequest, type Storyboard, type Take } from './schemas/storyboard'
 import { toast } from 'sonner'
 import { getStoryboard, updateStoryboard } from './server/functions'
 
@@ -57,7 +57,18 @@ export function setSelectedTake(sceneId: string, requestId: string | null): Stor
   return (doc) => ({
     ...doc,
     scenes: doc.scenes.map((scene) =>
-      scene.id === sceneId ? { ...scene, selected_take: requestId } : scene,
+      scene.id === sceneId
+        ? {
+            ...scene,
+            selected_take: requestId,
+            // Selecting a take IS the human's sign-off — status 'ready' is the
+            // signal the Claude agent keys off to leave the scene alone (see
+            // docs/skill/storyboard/SKILL.md). Clearing the selection returns
+            // the scene to needs-review when there are takes to review.
+            status:
+              requestId !== null ? 'ready' : scene.takes.length > 0 ? 'needs-review' : scene.status,
+          }
+        : scene,
     ),
   })
 }
@@ -76,6 +87,30 @@ export function setStar(sceneId: string, requestId: string, starred: boolean): S
       return { ...scene, starred: starred ? [...without, requestId] : without }
     }),
   })
+}
+
+// Append a UI→Claude "regenerate this scene" request carrying the current note.
+// Idempotent by intent: if an unhandled regenerate request for this scene is
+// already queued, do nothing (guards double-clicks and the retry re-apply). The
+// scene's status is left untouched — Claude flips it to 'generating' when it
+// picks the request up (per the storyboard skill). The id/timestamp are minted
+// here, so the optimistic and persisted requests differ by id until onSuccess
+// reconciles the cache to the server doc; the dedupe key is (type, scene_id).
+export function queueRegenerateRequest(sceneId: string, note: string): StoryboardTransform {
+  return (doc) => {
+    const alreadyQueued = doc.requests.some(
+      (request) => request.type === REGENERATE && request.scene_id === sceneId,
+    )
+    if (alreadyQueued) return doc
+    const request: DirectionRequest = {
+      id: crypto.randomUUID(),
+      type: REGENERATE,
+      scene_id: sceneId,
+      note,
+      created_at: Date.now(),
+    }
+    return { ...doc, requests: [...doc.requests, request] }
+  }
 }
 
 interface MutationContext {

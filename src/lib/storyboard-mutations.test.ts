@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import type { Scene, Storyboard } from './schemas/storyboard'
+import { REGENERATE, type Scene, type Storyboard } from './schemas/storyboard'
 import {
   appendTake,
+  queueRegenerateRequest,
   reorderScenes,
   setSceneNotes,
   setSelectedTake,
@@ -87,10 +88,25 @@ describe('setSelectedTake', () => {
     expect(next.scenes[1]?.selected_take).toBe('req-9')
   })
 
-  it('clears the selection with null', () => {
+  it("marks the scene ready — the agent's leave-it-alone signal", () => {
+    const next = setSelectedTake('scene-01', 'req-9')(board('scene-01', 'scene-02'))
+    expect(next.scenes[0]?.status).toBe('ready')
+    expect(next.scenes[1]?.status).toBe('draft')
+  })
+
+  it('clearing the selection returns a scene with takes to needs-review', () => {
+    const withTake = appendTake('scene-01', take)(board('scene-01'))
+    const selected = setSelectedTake('scene-01', take.request_id)(withTake)
+    const cleared = setSelectedTake('scene-01', null)(selected)
+    expect(cleared.scenes[0]?.selected_take).toBeNull()
+    expect(cleared.scenes[0]?.status).toBe('needs-review')
+  })
+
+  it('clearing the selection on a takeless scene leaves status untouched', () => {
     const withSelection = setSelectedTake('scene-01', 'req-9')(board('scene-01'))
     const cleared = setSelectedTake('scene-01', null)(withSelection)
     expect(cleared.scenes[0]?.selected_take).toBeNull()
+    expect(cleared.scenes[0]?.status).toBe('ready')
   })
 
   it('is idempotent', () => {
@@ -129,5 +145,50 @@ describe('setStar', () => {
     )(setStar('scene-01', 'req-1', true)(board('scene-01')))
     const next = setStar('scene-01', 'req-1', false)(withTwo)
     expect(next.scenes[0]?.starred).toEqual(['req-2'])
+  })
+})
+
+describe('queueRegenerateRequest', () => {
+  it('appends a well-formed regenerate request', () => {
+    const next = queueRegenerateRequest('scene-01', 'warmer light')(board('scene-01', 'scene-02'))
+    expect(next.requests).toHaveLength(1)
+    const request = next.requests[0]
+    expect(request?.type).toBe(REGENERATE)
+    expect(request?.scene_id).toBe('scene-01')
+    expect(request?.note).toBe('warmer light')
+    expect(typeof request?.id).toBe('string')
+    expect(request?.id).not.toBe('')
+    expect(typeof request?.created_at).toBe('number')
+  })
+
+  it('leaves scene status untouched (Claude sets generating when it picks it up)', () => {
+    const next = queueRegenerateRequest('scene-01', 'x')(board('scene-01'))
+    expect(next.scenes[0]?.status).toBe('draft')
+  })
+
+  it('does not re-queue when an unhandled regenerate request for the scene exists', () => {
+    const once = queueRegenerateRequest('scene-01', 'first')(board('scene-01'))
+    const twice = queueRegenerateRequest('scene-01', 'second')(once)
+    expect(twice.requests).toHaveLength(1)
+    // The original request (and its note) is preserved, not replaced.
+    expect(twice.requests[0]?.note).toBe('first')
+    expect(twice).toBe(once)
+  })
+
+  it('queues independently per scene', () => {
+    const board2 = board('scene-01', 'scene-02')
+    const next = queueRegenerateRequest(
+      'scene-02',
+      'b',
+    )(queueRegenerateRequest('scene-01', 'a')(board2))
+    expect(next.requests.map((r) => r.scene_id)).toEqual(['scene-01', 'scene-02'])
+  })
+
+  it('re-queues a scene once a prior request was drained', () => {
+    const once = queueRegenerateRequest('scene-01', 'a')(board('scene-01'))
+    const drained = { ...once, requests: [] }
+    const again = queueRegenerateRequest('scene-01', 'b')(drained)
+    expect(again.requests).toHaveLength(1)
+    expect(again.requests[0]?.note).toBe('b')
   })
 })

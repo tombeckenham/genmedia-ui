@@ -1,5 +1,5 @@
 import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable'
-import type { Storyboard } from '#/lib/schemas/storyboard'
+import { REGENERATE, type Storyboard } from '#/lib/schemas/storyboard'
 import { SceneCard } from './scene-card'
 
 // Horizontal, drag-reorderable row of scene cards. The DndContext lives in the
@@ -7,6 +7,15 @@ import { SceneCard } from './scene-card'
 // sortable ordering of the scenes themselves.
 export function StoryboardBoard({ storyboard }: { storyboard: Storyboard | null }) {
   const scenes = storyboard?.scenes ?? []
+
+  // Scene ids with an unhandled regenerate request in the direction queue — the
+  // card shows a "queued for Claude" hint and disables its Regenerate button.
+  const regenScenes = new Set<string>()
+  for (const request of storyboard?.requests ?? []) {
+    if (request.type === REGENERATE && request.scene_id !== undefined) {
+      regenScenes.add(request.scene_id)
+    }
+  }
 
   return (
     <section className="flex flex-col gap-2">
@@ -28,7 +37,7 @@ export function StoryboardBoard({ storyboard }: { storyboard: Storyboard | null 
         >
           <div className="flex gap-3 overflow-x-auto pb-2">
             {scenes.map((scene) => (
-              <SceneCard key={scene.id} scene={scene} />
+              <SceneCard key={scene.id} scene={scene} queuedForRegen={regenScenes.has(scene.id)} />
             ))}
           </div>
         </SortableContext>

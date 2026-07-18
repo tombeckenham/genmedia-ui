@@ -2,11 +2,15 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Link } from '@tanstack/react-router'
 import { useEffect, useRef, useState } from 'react'
-import { Film, GripVertical } from 'lucide-react'
+import { Film, GripVertical, RefreshCw } from 'lucide-react'
 import { Textarea } from '#/components/ui/textarea'
 import { mediaSrc } from '#/lib/media-path'
 import type { Scene, SceneStatus } from '#/lib/schemas/storyboard'
-import { setSceneNotes, useStoryboardMutation } from '#/lib/storyboard-mutations'
+import {
+  queueRegenerateRequest,
+  setSceneNotes,
+  useStoryboardMutation,
+} from '#/lib/storyboard-mutations'
 import { cn } from '#/lib/utils'
 
 const STATUS_STYLES: Record<SceneStatus, string> = {
@@ -69,29 +73,34 @@ function SceneThumb({ scene }: { scene: Scene }) {
   )
 }
 
-function SceneNotes({ scene }: { scene: Scene }) {
+export function SceneCard({ scene, queuedForRegen }: { scene: Scene; queuedForRegen: boolean }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } =
+    useSortable({ id: scene.id, data: { type: 'scene', sceneId: scene.id } })
   const mutation = useStoryboardMutation()
-  const [value, setValue] = useState(scene.notes)
+
+  // Notes editor state, co-located so the Regenerate button can queue the exact
+  // note the user is looking at. Debounced save; adopt external edits (Claude
+  // rewriting notes) only while the box isn't focused.
+  const [note, setNote] = useState(scene.notes)
   const focusedRef = useRef(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Adopt external changes (e.g. Claude edited notes) only while not editing.
   useEffect(() => {
-    if (!focusedRef.current) setValue(scene.notes)
+    if (!focusedRef.current) setNote(scene.notes)
   }, [scene.notes])
 
-  const save = (next: string) => {
+  const saveNotes = (next: string) => {
     if (next !== scene.notes) mutation.mutate(setSceneNotes(scene.id, next))
   }
 
-  // Flush (not discard) a pending debounced save on unmount, or the last
-  // few keystrokes silently vanish when the card unmounts mid-debounce.
+  // Flush (not discard) a pending debounced save on unmount, or the last few
+  // keystrokes vanish when the card unmounts mid-debounce.
   const flushRef = useRef<(() => void) | null>(null)
   flushRef.current = () => {
     if (timerRef.current !== null) {
       clearTimeout(timerRef.current)
       timerRef.current = null
-      save(value)
+      saveNotes(note)
     }
   }
   useEffect(() => {
@@ -100,42 +109,13 @@ function SceneNotes({ scene }: { scene: Scene }) {
     }
   }, [])
 
-  return (
-    <div className="flex flex-col gap-1">
-      <Textarea
-        value={value}
-        placeholder="Notes for Claude…"
-        className="min-h-14 bg-zinc-900/60"
-        onFocus={() => {
-          focusedRef.current = true
-        }}
-        onChange={(event) => {
-          const next = event.target.value
-          setValue(next)
-          if (timerRef.current !== null) clearTimeout(timerRef.current)
-          timerRef.current = setTimeout(() => save(next), NOTES_DEBOUNCE_MS)
-        }}
-        onBlur={() => {
-          focusedRef.current = false
-          if (timerRef.current !== null) clearTimeout(timerRef.current)
-          save(value)
-        }}
-      />
-      {mutation.isError && (
-        <span className="text-[11px] text-red-400">Not saved — edit again to retry.</span>
-      )}
-    </div>
-  )
-}
-
-export function SceneCard({ scene }: { scene: Scene }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } =
-    useSortable({ id: scene.id, data: { type: 'scene', sceneId: scene.id } })
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
+  const handleRegenerate = () => {
+    // The request carries the live note; the scene's own notes save on blur.
+    mutation.mutate(queueRegenerateRequest(scene.id, note))
   }
+
+  const style = { transform: CSS.Transform.toString(transform), transition }
+  const needsReview = scene.status === 'needs-review'
 
   return (
     <div
@@ -145,6 +125,7 @@ export function SceneCard({ scene }: { scene: Scene }) {
         'flex w-64 shrink-0 flex-col gap-2 rounded-lg border border-zinc-800 bg-zinc-900/40 p-3 transition-colors',
         isDragging && 'opacity-50',
         isOver && 'border-teal-500/60 ring-1 ring-teal-500/40',
+        needsReview && 'border-purple-500/50',
       )}
     >
       <div className="flex items-start gap-2">
@@ -160,14 +141,34 @@ export function SceneCard({ scene }: { scene: Scene }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
             <h3 className="truncate text-sm font-medium text-zinc-100">{scene.title}</h3>
-            <span
-              className={cn(
-                'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium',
-                STATUS_STYLES[scene.status],
-              )}
-            >
-              {STATUS_LABELS[scene.status]}
-            </span>
+            <div className="flex shrink-0 items-center gap-1">
+              <button
+                type="button"
+                onClick={handleRegenerate}
+                disabled={queuedForRegen}
+                aria-label={
+                  queuedForRegen
+                    ? 'Regenerate already queued for Claude'
+                    : 'Queue this scene for Claude to regenerate'
+                }
+                title={queuedForRegen ? 'Queued for Claude' : 'Regenerate with Claude'}
+                className={cn(
+                  'rounded p-1 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-200 disabled:pointer-events-none',
+                  queuedForRegen && 'text-teal-400',
+                )}
+              >
+                <RefreshCw className="size-3.5" />
+              </button>
+              <span
+                className={cn(
+                  'rounded px-1.5 py-0.5 text-[10px] font-medium',
+                  STATUS_STYLES[scene.status],
+                  needsReview && 'animate-pulse ring-1 ring-purple-400/70',
+                )}
+              >
+                {STATUS_LABELS[scene.status]}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -180,9 +181,37 @@ export function SceneCard({ scene }: { scene: Scene }) {
         <span>
           {scene.takes.length} take{scene.takes.length === 1 ? '' : 's'}
         </span>
+        {queuedForRegen && (
+          <span className="flex items-center gap-1 text-teal-400">
+            <RefreshCw className="size-3" /> Queued for Claude
+          </span>
+        )}
       </div>
 
-      <SceneNotes scene={scene} />
+      <div className="flex flex-col gap-1">
+        <Textarea
+          value={note}
+          placeholder="Notes for Claude…"
+          className="min-h-14 bg-zinc-900/60"
+          onFocus={() => {
+            focusedRef.current = true
+          }}
+          onChange={(event) => {
+            const next = event.target.value
+            setNote(next)
+            if (timerRef.current !== null) clearTimeout(timerRef.current)
+            timerRef.current = setTimeout(() => saveNotes(next), NOTES_DEBOUNCE_MS)
+          }}
+          onBlur={() => {
+            focusedRef.current = false
+            if (timerRef.current !== null) clearTimeout(timerRef.current)
+            saveNotes(note)
+          }}
+        />
+        {mutation.isError && (
+          <span className="text-[11px] text-red-400">Not saved — edit again to retry.</span>
+        )}
+      </div>
     </div>
   )
 }

@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
   "title": "Lighthouse Teaser",
-  "updated_at": 1784334587688,
+  "updated_at": 1784344678000,
   "scenes": [
     {
       "id": "scene-01",
       "title": "Drone approach",
       "prompt": "Cinematic aerial drone shot slowly approaching a solitary white lighthouse on a rocky headland at dusk, golden hour, waves crashing below, gentle push-in",
-      "status": "ready",
+      "status": "needs-review",
       "notes": "More golden hour warmth, slower push-in",
       "selected_take": "019f725d-e63e-7962-a4b3-41ca94cc7143",
       "starred": [],
@@ -23,6 +23,20 @@
           "endpoint_id": "bytedance/seedance-2.0/mini/text-to-video",
           "path": "takes/scene-01/019f725d-ecd7-7282-b324-fa66e6e903a7.mp4",
           "kind": "video"
+        },
+        {
+          "request_id": "019f7339-3991-7700-9837-064ffe732c94",
+          "endpoint_id": "bytedance/seedance-2.0/mini/text-to-video",
+          "path": "takes/scene-01/019f7339-3991-7700-9837-064ffe732c94.mp4",
+          "kind": "video",
+          "params": {
+            "prompt": "Cinematic aerial drone shot very slowly pushing in toward a solitary white lighthouse on a rocky headland, intense warm golden hour glow bathing the cliffs, sun low on the horizon, waves crashing below, gentle deliberate camera movement",
+            "resolution": "480p",
+            "duration": "5",
+            "aspect_ratio": "16:9",
+            "generate_audio": false,
+            "direction_note": "More golden hour warmth, slower push-in"
+          }
         }
       ],
       "pending": []

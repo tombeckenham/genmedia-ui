@@ -135,19 +135,41 @@ export const STORYBOARD_UNREADABLE = 'storyboard-unreadable'
 // decisions never depend on error messages surviving server-fn serialization.
 export type UpdateStoryboardResult = { conflict: true } | { conflict: false; doc: Storyboard }
 
+// Serializes read-verdict-write cycles WITHIN this server process. Two
+// concurrent requests (e.g. a notes blur-save racing a Regenerate click) could
+// otherwise both read the same expected_updated_at before either writes, and
+// the second would silently clobber the first. Cross-process writers (the
+// Claude CLI) are still covered by the optimistic-concurrency verdict.
+let storyboardWriteChain: Promise<unknown> = Promise.resolve()
+
+async function updateStoryboardOnDisk(
+  expectedUpdatedAt: number | null,
+  storyboard: Storyboard,
+): Promise<UpdateStoryboardResult> {
+  const onDisk = await readStoryboardOnDisk(storyboardPath())
+  const verdict = writeVerdict(onDisk, expectedUpdatedAt)
+  if (verdict === 'unreadable') throw new Error(STORYBOARD_UNREADABLE)
+  if (verdict === 'conflict') return { conflict: true }
+  // Whole-document write, but conflict-checked above.
+  const doc: Storyboard = { ...storyboard, updated_at: Date.now() }
+  await atomicWriteJson(storyboardPath(), doc)
+  return { conflict: false, doc }
+}
+
 export const updateStoryboard = createServerFn({ method: 'POST' })
   .validator(z.object({ expected_updated_at: z.number().nullable(), storyboard: storyboardSchema }))
-  .handler(async ({ data }): Promise<UpdateStoryboardResult> => {
+  .handler(({ data }): Promise<UpdateStoryboardResult> => {
     // Optimistic concurrency: the Claude agent writes this file too. See
     // storyboard-io.ts for the verdict semantics.
-    const onDisk = await readStoryboardOnDisk(storyboardPath())
-    const verdict = writeVerdict(onDisk, data.expected_updated_at)
-    if (verdict === 'unreadable') throw new Error(STORYBOARD_UNREADABLE)
-    if (verdict === 'conflict') return { conflict: true }
-    // Whole-document write, but conflict-checked above.
-    const doc: Storyboard = { ...data.storyboard, updated_at: Date.now() }
-    await atomicWriteJson(storyboardPath(), doc)
-    return { conflict: false, doc }
+    const task = storyboardWriteChain.then(() =>
+      updateStoryboardOnDisk(data.expected_updated_at, data.storyboard),
+    )
+    // Keep the chain alive whether this write succeeds or fails.
+    storyboardWriteChain = task.then(
+      () => undefined,
+      () => undefined,
+    )
+    return task
   })
 
 // The client can't know the project dir; components need it to relativize

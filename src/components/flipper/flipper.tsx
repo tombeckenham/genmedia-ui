@@ -1,6 +1,6 @@
 import { getRouteApi, Link } from '@tanstack/react-router'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Star, X } from 'lucide-react'
+import { Film, Star, X } from 'lucide-react'
 import type { Scene } from '#/lib/schemas/storyboard'
 import { setSelectedTake, setStar, useStoryboardMutation } from '#/lib/storyboard-mutations'
 import { cn } from '#/lib/utils'
@@ -131,10 +131,14 @@ export function Flipper({ scene }: { scene: Scene }) {
   if (takes.length === 0 || currentTake === undefined) {
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 bg-black text-zinc-200">
-        <p className="text-sm text-zinc-400">
-          <span className="font-medium text-zinc-200">{scene.title}</span> has no takes yet.
+        <Film className="size-8 text-zinc-600" strokeWidth={1.5} />
+        <p className="text-sm text-zinc-300">
+          <span className="font-medium text-zinc-100">{scene.title}</span> has no takes yet
         </p>
-        <Link to="/" className="text-sm text-teal-400 hover:text-teal-300">
+        <p className="max-w-xs text-center text-xs leading-relaxed text-zinc-500">
+          Ask Claude to generate a take for this scene and it will appear here.
+        </p>
+        <Link to="/" className="mt-1 text-sm text-teal-400 hover:text-teal-300">
           Back to the board
         </Link>
       </div>

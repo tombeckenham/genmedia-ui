@@ -1,6 +1,6 @@
 import { useNavigate } from '@tanstack/react-router'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Pause, Play, Volume2, VolumeX, X } from 'lucide-react'
+import { Clapperboard, Pause, Play, Volume2, VolumeX, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatClock, locateTime, resolveSequence, totalDuration } from '#/lib/export/sequence'
 import type { Storyboard } from '#/lib/schemas/storyboard'
@@ -245,13 +245,17 @@ export function SequencePlayer({ storyboard }: { storyboard: Storyboard | null }
   if (items.length === 0) {
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-3 bg-black text-zinc-200">
-        <p className="text-sm text-zinc-400">No scenes with takes to play yet.</p>
+        <Clapperboard className="size-8 text-zinc-600" strokeWidth={1.5} />
+        <p className="text-sm font-medium text-zinc-300">Nothing to play yet</p>
+        <p className="max-w-xs text-center text-xs leading-relaxed text-zinc-500">
+          Pick a take for at least one scene on the board, then come back to watch the cut.
+        </p>
         <button
           type="button"
           onClick={() => {
             void navigate({ to: '/' })
           }}
-          className="text-sm text-teal-400 hover:text-teal-300"
+          className="mt-1 text-sm text-teal-400 hover:text-teal-300"
         >
           Back to the board
         </button>

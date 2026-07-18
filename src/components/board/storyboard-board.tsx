@@ -1,4 +1,6 @@
 import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable'
+import { Clapperboard } from 'lucide-react'
+import { EmptyState } from '#/components/ui/empty-state'
 import { REGENERATE, type Storyboard } from '#/lib/schemas/storyboard'
 import { SceneCard } from './scene-card'
 
@@ -27,9 +29,13 @@ export function StoryboardBoard({ storyboard }: { storyboard: Storyboard | null 
       </div>
 
       {scenes.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-zinc-800 p-6 text-sm text-zinc-500">
-          No scenes yet. The storyboard is created by the Claude agent driving the CLI.
-        </p>
+        <EmptyState
+          icon={Clapperboard}
+          title="No storyboard yet"
+          hint={
+            'Ask Claude to start one, like "make a 3-scene lighthouse teaser". Scenes and takes show up here as it generates.'
+          }
+        />
       ) : (
         <SortableContext
           items={scenes.map((scene) => scene.id)}

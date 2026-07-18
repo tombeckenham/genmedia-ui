@@ -12,10 +12,11 @@ import {
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { PlayCircle } from 'lucide-react'
+import { PlayCircle, Radio } from 'lucide-react'
 import { useState } from 'react'
 import { z } from 'zod'
 import { StoryboardBoard } from '#/components/board/storyboard-board'
+import { EmptyState } from '#/components/ui/empty-state'
 import { PendingJobs } from '#/components/feed/pending-jobs'
 import { RunsFeed } from '#/components/feed/runs-feed'
 import { SessionPicker } from '#/components/feed/session-picker'
@@ -150,9 +151,7 @@ function MissionControl() {
           <header className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h1 className="text-xl font-semibold tracking-tight">Mission Control</h1>
-              <p className="text-sm text-zinc-500">
-                {storyboard?.title ?? 'Live generation activity'}
-              </p>
+              <p className="text-sm text-zinc-500">genmedia storyboard console</p>
             </div>
             <div className="flex items-center gap-3">
               {hasPlayableSequence && (
@@ -180,9 +179,11 @@ function MissionControl() {
           <section className="flex flex-col gap-2">
             <h2 className="text-xs font-semibold tracking-wide text-zinc-500 uppercase">Runs</h2>
             {selectedId === null ? (
-              <p className="rounded-lg border border-dashed border-zinc-800 p-6 text-sm text-zinc-500">
-                No sessions found in the gallery yet.
-              </p>
+              <EmptyState
+                icon={Radio}
+                title="No sessions yet"
+                hint="Runs stream in here when a Claude Code agent generates media with the genmedia CLI in this project."
+              />
             ) : (
               // Keyed by session so the "seen runs" animation state resets on switch.
               <RunsFeed

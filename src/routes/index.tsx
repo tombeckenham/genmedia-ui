@@ -11,7 +11,8 @@ import {
 } from '@dnd-kit/core'
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { PlayCircle } from 'lucide-react'
 import { useState } from 'react'
 import { z } from 'zod'
 import { StoryboardBoard } from '#/components/board/storyboard-board'
@@ -82,6 +83,7 @@ function MissionControl() {
 
   const scenes = storyboard?.scenes ?? []
   const sceneIds = scenes.map((scene) => scene.id)
+  const hasPlayableSequence = scenes.some((scene) => scene.takes.length > 0)
 
   const [activeDrag, setActiveDrag] = useState<ActiveDrag | null>(null)
 
@@ -152,13 +154,23 @@ function MissionControl() {
                 {storyboard?.title ?? 'Live generation activity'}
               </p>
             </div>
-            <SessionPicker
-              sessions={sessions}
-              selectedId={selectedId}
-              onSelect={(id) => {
-                void navigate({ search: { session: id } })
-              }}
-            />
+            <div className="flex items-center gap-3">
+              {hasPlayableSequence && (
+                <Link
+                  to="/sequence"
+                  className="flex items-center gap-1.5 rounded-md border border-teal-500/40 bg-teal-500/10 px-3 py-1.5 text-sm font-medium text-teal-200 transition-colors hover:bg-teal-500/20"
+                >
+                  <PlayCircle className="size-4" /> Play sequence
+                </Link>
+              )}
+              <SessionPicker
+                sessions={sessions}
+                selectedId={selectedId}
+                onSelect={(id) => {
+                  void navigate({ search: { session: id } })
+                }}
+              />
+            </div>
           </header>
 
           <StoryboardBoard storyboard={storyboard} />

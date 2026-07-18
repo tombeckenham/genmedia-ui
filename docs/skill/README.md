@@ -18,8 +18,16 @@ covers running models); install both.
 
 ### Install
 
-Copy the skill folder into your Claude Code skills directory — user-level (all
-projects) or project-level (checked into the repo you're generating in):
+**Straight from GitHub (Claude Code plugin marketplace)** — this repo is a
+plugin marketplace, so inside Claude Code:
+
+```
+/plugin marketplace add tombeckenham/genmedia-ui
+/plugin install storyboard@genmedia-ui
+```
+
+**Or copy the folder** — user-level (all projects) or project-level (checked
+into the repo you're generating in):
 
 ```bash
 # User-level: available in every project
@@ -29,6 +37,14 @@ cp -r docs/skill/storyboard ~/.claude/skills/
 mkdir -p /path/to/your/project/.claude/skills
 cp -r docs/skill/storyboard /path/to/your/project/.claude/skills/
 ```
+
+**Other agents** — `SKILL.md` is an open format, so the same folder works
+beyond Claude Code:
+
+- **OpenAI Codex CLI**: copy into `~/.codex/skills/` (personal) or
+  `.codex/skills/` (project).
+- **xAI Grok Build**: copy into `~/.grok/skills/` or `.grok/skills/` — or do
+  nothing: Grok reads Claude Code skill locations (and marketplaces) directly.
 
 Then run Claude Code in the same directory you pointed `GENMEDIA_UI_PROJECT` at,
 and it will pick up the `storyboard` skill when it sees a `storyboard.json` (or

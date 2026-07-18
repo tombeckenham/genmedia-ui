@@ -40,7 +40,10 @@ export const Route = createFileRoute('/api/events')({
             send(': connected\n\n')
 
             unsubscribe = subscribe((scope: ChangeScope) => {
-              send(`data: ${JSON.stringify({ scope })}\n\n`)
+              // Story DB changes also carry a `type` field ('story-changed');
+              // clients may key on either `scope` or `type`.
+              const payload = scope === 'story' ? { scope, type: 'story-changed' } : { scope }
+              send(`data: ${JSON.stringify(payload)}\n\n`)
             })
 
             heartbeat = setInterval(() => {

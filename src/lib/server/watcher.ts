@@ -1,16 +1,20 @@
 import { watch, type FSWatcher } from 'chokidar'
 import { resolve, sep } from 'node:path'
 import { galleryDir, lastSessionPath, sessionsDir, storyboardPath } from './paths'
+import { currentStoryDbPath } from './story-queries'
 
-// Module-level singleton file watcher. There is no database — the filesystem is
-// the state layer — so a single chokidar instance bridges CLI/agent writes to
-// SSE clients. The watcher is created lazily on first subscribe and kept alive
-// afterwards (it is cheap and simpler than tearing it down and back up).
+// Module-level singleton file watcher. A single chokidar instance bridges
+// CLI/agent writes (gallery files, storyboard.json, and the per-project
+// story.db SQLite file) to SSE clients. The watcher is created lazily on first
+// subscribe and kept alive afterwards (it is cheap and simpler than tearing it
+// down and back up).
 
-export type ChangeScope = 'gallery' | 'storyboard'
+export type ChangeScope = 'gallery' | 'storyboard' | 'story'
 type Listener = (scope: ChangeScope) => void
 
-const DEBOUNCE_MS = 120
+// WAL writes are chatty (story.db-wal changes on every statement), so the
+// story scope debounces a little longer than the JSON-file scopes.
+const DEBOUNCE_MS: Record<ChangeScope, number> = { gallery: 120, storyboard: 120, story: 150 }
 
 const listeners = new Set<Listener>()
 const debounceTimers = new Map<ChangeScope, ReturnType<typeof setTimeout>>()
@@ -18,14 +22,17 @@ let watcher: FSWatcher | undefined
 
 // Pure classification, exported for unit testing. A changed path under the
 // gallery dir is a 'gallery' change; the storyboard file itself is a
-// 'storyboard' change; anything else is ignored. The `+ sep` guard keeps a
-// sibling like `/gallery-backup` from matching `/gallery`.
+// 'storyboard' change; the story DB file or one of its SQLite siblings
+// (story.db-wal / story.db-shm) is a 'story' change; anything else is ignored.
+// The `+ sep` guard keeps a sibling like `/gallery-backup` from matching
+// `/gallery`.
 export function classifyPath(
   changedPath: string,
-  roots: { gallery: string; storyboard: string },
+  roots: { gallery: string; storyboard: string; storyDb: string },
 ): ChangeScope | undefined {
   const abs = resolve(changedPath)
   if (abs === roots.storyboard) return 'storyboard'
+  if (abs === roots.storyDb || abs.startsWith(roots.storyDb + '-')) return 'story'
   if (abs === roots.gallery || abs.startsWith(roots.gallery + sep)) return 'gallery'
   return undefined
 }
@@ -44,23 +51,32 @@ function emit(scope: ChangeScope): void {
           // A misbehaving listener must not take down the watcher or its peers.
         }
       }
-    }, DEBOUNCE_MS),
+    }, DEBOUNCE_MS[scope]),
   )
 }
 
 function ensureWatcher(): void {
   if (watcher !== undefined) return
   // Watched paths may not exist yet on a fresh machine; chokidar tolerates this
-  // and will pick them up when they appear. The 'error' handler guarantees a
-  // stray fs error never crashes the dev server.
-  const instance = watch([sessionsDir(), lastSessionPath(), storyboardPath()], {
-    ignoreInitial: true,
-    persistent: true,
-    depth: 2, // sessions/<id>/data.json sits two levels under sessionsDir()
-    awaitWriteFinish: { stabilityThreshold: 150, pollInterval: 50 },
-  })
+  // and will pick them up when they appear (verified for the not-yet-created
+  // story.db too). The 'error' handler guarantees a stray fs error never
+  // crashes the dev server.
+  const storyDb = currentStoryDbPath()
+  const instance = watch(
+    [sessionsDir(), lastSessionPath(), storyboardPath(), storyDb, `${storyDb}-wal`],
+    {
+      ignoreInitial: true,
+      persistent: true,
+      depth: 2, // sessions/<id>/data.json sits two levels under sessionsDir()
+      awaitWriteFinish: { stabilityThreshold: 150, pollInterval: 50 },
+    },
+  )
   instance.on('all', (_event, changedPath) => {
-    const scope = classifyPath(changedPath, { gallery: galleryDir(), storyboard: storyboardPath() })
+    const scope = classifyPath(changedPath, {
+      gallery: galleryDir(),
+      storyboard: storyboardPath(),
+      storyDb,
+    })
     if (scope !== undefined) emit(scope)
   })
   instance.on('error', () => {

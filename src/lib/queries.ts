@@ -7,6 +7,7 @@ import {
   listSessions,
   pollJob,
 } from './server/functions'
+import { getSequence, listSequences } from './server/story-functions'
 
 // TanStack Query wrappers around the Phase 1 server functions. Keys are kept
 // flat and stable so useLiveEvents can invalidate them by prefix.
@@ -39,6 +40,22 @@ export const projectInfoQuery = queryOptions({
   queryFn: () => getProjectInfo(),
   staleTime: Infinity,
 })
+
+// Story engine (SQLite-backed sequences → scenes → shots → frames). Keys are
+// prefixed 'story-' so the story SSE scope can invalidate them independently of
+// the legacy gallery/storyboard keys.
+
+export const storySequencesQuery = queryOptions({
+  queryKey: ['story-sequences'],
+  queryFn: () => listSequences(),
+})
+
+export function storySequenceQuery(id: string) {
+  return queryOptions({
+    queryKey: ['story-sequence', id],
+    queryFn: () => getSequence({ data: { id } }),
+  })
+}
 
 // Polls the genmedia CLI for a single in-flight job. Callers own the polling
 // cadence (refetchInterval) and when to stop — the shape here is just the fetch.

@@ -12,7 +12,7 @@ import {
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { PlayCircle, Radio } from 'lucide-react'
+import { BookOpen, PlayCircle, Radio } from 'lucide-react'
 import { useState } from 'react'
 import { z } from 'zod'
 import { StoryboardBoard } from '#/components/board/storyboard-board'
@@ -154,6 +154,12 @@ function MissionControl() {
               <p className="text-sm text-zinc-500">genmedia storyboard console</p>
             </div>
             <div className="flex items-center gap-3">
+              <Link
+                to="/story"
+                className="flex items-center gap-1.5 rounded-md border border-zinc-800 px-3 py-1.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-900"
+              >
+                <BookOpen className="size-4" /> Story
+              </Link>
               {hasPlayableSequence && (
                 <Link
                   to="/sequence"

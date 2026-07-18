@@ -87,4 +87,35 @@ describe('storyboard schema', () => {
       sceneSchema.parse({ id: 's', title: 't', prompt: 'p', status: 'exploded' }),
     ).toThrow()
   })
+
+  it('accepts the CLI scene-id slugs and rejects unsafe ids', () => {
+    for (const id of ['scene-01', 'scene-02', 'scene-03', 's', 'a1_b-2']) {
+      expect(sceneSchema.parse({ id, title: 't', prompt: 'p' }).id).toBe(id)
+    }
+    for (const id of ['', 'Scene-01', '-scene', '_scene', 'scene 1', 'a/b', '../etc']) {
+      expect(() => sceneSchema.parse({ id, title: 't', prompt: 'p' })).toThrow()
+    }
+  })
+
+  it('preserves optional take params (reproducibility metadata) round-trip', () => {
+    const take = {
+      request_id: 'req-1',
+      endpoint_id: 'fal-ai/veo3',
+      path: 'takes/scene-01/req-1.mp4',
+      kind: 'video',
+      params: { seed: 42, prompt: 'a lighthouse', guidance_scale: 7 },
+    }
+    const scene = sceneSchema.parse({ id: 'scene-01', title: 't', prompt: 'p', takes: [take] })
+    expect(scene.takes[0]?.params).toEqual({ seed: 42, prompt: 'a lighthouse', guidance_scale: 7 })
+  })
+
+  it('leaves params undefined when omitted', () => {
+    const scene = sceneSchema.parse({
+      id: 'scene-01',
+      title: 't',
+      prompt: 'p',
+      takes: [{ request_id: 'r', endpoint_id: 'e', path: 'takes/scene-01/r.mp4', kind: 'video' }],
+    })
+    expect(scene.takes[0]?.params).toBeUndefined()
+  })
 })

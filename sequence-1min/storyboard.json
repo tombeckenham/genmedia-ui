@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "title": "Lighthouse Dawn — 60s",
+  "updated_at": 1784347373000,
+  "scenes": [
+    {
+      "id": "scene-01",
+      "title": "Drone approach",
+      "prompt": "Cinematic aerial drone shot slowly approaching a solitary white lighthouse on a rocky headland at dawn, soft golden light breaking through mist, waves far below, gentle deliberate push-in, photorealistic, 16:9 film look",
+      "status": "draft",
+      "notes": "",
+      "selected_take": null,
+      "starred": [],
+      "takes": [],
+      "pending": []
+    },
+    {
+      "id": "scene-02",
+      "title": "Waves at the rocks",
+      "prompt": "Low angle cinematic shot of powerful ocean waves crashing against dark wet rocks below a white lighthouse at dawn, sea spray catching golden light, slow motion feel, photorealistic, 16:9 film look",
+      "status": "draft",
+      "notes": "",
+      "selected_take": null,
+      "starred": [],
+      "takes": [],
+      "pending": []
+    },
+    {
+      "id": "scene-03",
+      "title": "Spiral stairs",
+      "prompt": "Interior of a white lighthouse: cinematic tracking shot climbing a narrow spiral iron staircase upward, shafts of warm dawn light through small windows, dust motes, handheld subtle movement, photorealistic, 16:9 film look",
+      "status": "draft",
+      "notes": "",
+      "selected_take": null,
+      "starred": [],
+      "takes": [],
+      "pending": []
+    },
+    {
+      "id": "scene-04",
+      "title": "Beacon sweep",
+      "prompt": "Silhouette of a lighthouse keeper in the glass lamp room as the rotating beacon light sweeps past camera at dawn, blue and gold color grade, cinematic interior, photorealistic, 16:9 film look",
+      "status": "draft",
+      "notes": "",
+      "selected_take": null,
+      "starred": [],
+      "takes": [],
+      "pending": []
+    }
+  ],
+  "requests": []
+}

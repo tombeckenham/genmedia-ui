@@ -151,14 +151,14 @@ it; `--select` on a fresh row or your own iteration is fine.
 
 ## Quick reference
 
-| Situation                       | Do                                                                    |
-| ------------------------------- | --------------------------------------------------------------------- |
-| Any `node scripts/story.ts` command     | pass `--project <projectDir>` (or `--db`)                             |
-| Fresh script/brief              | full breakdown → ONE `import --file batch.json`                       |
-| Frame prompt tweak              | `set-frame --shot <id> --role start\|end --prompt "…"` (upsert)       |
-| Other field tweak               | `update <table> <id> --set field=value` (whitelisted fields — cli.md) |
-| Generated an asset              | download into project folder → `record-generation … --select`         |
-| Before editing existing content | `show sequence <id>` — respect human edits and selections             |
-| Human's selected take           | never overwrite a `selected_generation_id` you did not set            |
-| Inspect state                   | `show sequence` / `list …` / read-only `sqlite3`                      |
-| Mutating SQL                    | never — CLI only                                                      |
+| Situation                           | Do                                                                    |
+| ----------------------------------- | --------------------------------------------------------------------- |
+| Any `node scripts/story.ts` command | pass `--project <projectDir>` (or `--db`)                             |
+| Fresh script/brief                  | full breakdown → ONE `import --file batch.json`                       |
+| Frame prompt tweak                  | `set-frame --shot <id> --role start\|end --prompt "…"` (upsert)       |
+| Other field tweak                   | `update <table> <id> --set field=value` (whitelisted fields — cli.md) |
+| Generated an asset                  | download into project folder → `record-generation … --select`         |
+| Before editing existing content     | `show sequence <id>` — respect human edits and selections             |
+| Human's selected take               | never overwrite a `selected_generation_id` you did not set            |
+| Inspect state                       | `show sequence` / `list …` / read-only `sqlite3`                      |
+| Mutating SQL                        | never — CLI only                                                      |

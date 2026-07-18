@@ -1,0 +1,14 @@
+pre-commit:
+  parallel: true
+  jobs:
+    - name: format
+      glob: '*.{ts,tsx,js,jsx,mjs,cjs,json}'
+      exclude:
+        - src/routeTree.gen.ts
+        - demo/storyboard.json
+      run: bunx oxfmt {staged_files}
+      stage_fixed: true
+    - name: lint
+      run: bun run lint
+    - name: typecheck
+      run: bun run typecheck

@@ -11,11 +11,11 @@ import { mkdirSync } from 'node:fs'
 import path from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
 import { drizzle, type NodeSQLiteDatabase } from 'drizzle-orm/node-sqlite'
-import { storyDbPath } from './db-path'
-import { SCHEMA_SQL } from './ddl'
+import { storyDbPath } from './db-path.ts'
+import { SCHEMA_SQL } from './ddl.ts'
 
-export * from './db-path'
-export * from './schema'
+export * from './db-path.ts'
+export * from './schema.ts'
 
 export type StoryDb = NodeSQLiteDatabase & { $client: DatabaseSync }
 

@@ -20,7 +20,7 @@ breakdown: **sequences → scenes → shots → frames (start/end)**, plus reusa
 `/story` board renders it live — the app watches the DB file and refreshes on
 every write, so each CLI call you make shows up in the UI immediately.
 
-All writes go through the story CLI (`bun run story ...` from the genmedia-ui
+All writes go through the story CLI (`node scripts/story.ts ...` from the genmedia-ui
 repo). **Never mutate the DB with hand-written SQL** — the CLI keeps ids,
 `updated_at` bumps, and referential checks consistent. Read-only `sqlite3`
 queries are fine (introspect the live schema with
@@ -35,18 +35,19 @@ run generation models — this skill only covers the story DB contract.
 
 The DB is **per project folder**: `<projectDir>/story.db`, next to that
 project's `storyboard.json` and `takes/` (e.g. `sequence-1min/story.db`) —
-the same project-dir convention as the legacy storyboard flow. But `bun run`
-resets the cwd to the repo root, so the CLI's `./story.db` default will land
-in the **wrong place** if you rely on your shell's cwd.
+the same project-dir convention as the legacy storyboard flow. But the CLI
+is invoked from the genmedia-ui repo root (where `scripts/story.ts` lives),
+so its `./story.db` default will land in the **wrong place** if you rely on
+the cwd.
 
-Therefore: **pass `--project <projectDir>` on every `bun run story` command**
+Therefore: **pass `--project <projectDir>` on every `node scripts/story.ts` command**
 (or `--db <path>` for an exact file). Precedence: `--db` > `--project` >
 `STORY_DB_PATH` env > `$GENMEDIA_UI_PROJECT/story.db` (when that env is set,
 as it is in the dev-server smoke-run) > `./story.db` in the cwd.
 
 ```bash
 cd <genmedia-ui repo root>
-bun run story list sequences --project sequence-1min
+node scripts/story.ts list sequences --project sequence-1min
 ```
 
 Output is JSON on stdout; failures exit 1 with a JSON `{ "error": ... }` on
@@ -78,7 +79,7 @@ half-written state on the board):
      — image models have no memory. Consistency comes from repeating the
      exact appearance wording.
 4. **Write it all in ONE call**: build a `batch.json` and run
-   `bun run story import --project <dir> --file batch.json`. Scene entity
+   `node scripts/story.ts import --project <dir> --file batch.json`. Scene entity
    references may be plain names ("Mara") — the importer resolves them
    case-insensitively against the sequence's entities and creates any that
    are missing. Prefer explicit ids in the batch (`seq_…`, `scn_01_…`,
@@ -117,7 +118,7 @@ genmedia run fal-ai/flux/dev \
   --prompt "<the row's prompt, verbatim>" \
   --download "sequence-1min/story-assets/chr_mara/{request_id}.{ext}" --json
 
-bun run story record-generation --project sequence-1min \
+node scripts/story.ts record-generation --project sequence-1min \
   --target-type character --target-id chr_mara \
   --kind image --path story-assets/chr_mara/req_img_001.png \
   --request-id req_img_001 --endpoint-id fal-ai/flux/dev \
@@ -129,20 +130,20 @@ genmedia gallery does not store them, and you will need them to iterate
 ("same but warmer") later. Statuses (`draft | ready | generating | review |
 done` on scenes and shots) are shared with the human driving the UI: set
 `status=generating` while jobs run and `status=review` when takes land
-(`bun run story update shots <id> --set status=review`); leave `done` and
+(`node scripts/story.ts update shots <id> --set status=review`); leave `done` and
 already-human-edited fields to the human. A non-null
 `selected_generation_id` you did not set is a human pick — don't overwrite
 it; `--select` on a fresh row or your own iteration is fine.
 
 ## Workflow 3 — query state
 
-- `bun run story show sequence <id> --project <dir>` — the full JSON tree
+- `node scripts/story.ts show sequence <id> --project <dir>` — the full JSON tree
   (sequence → scenes with `characterIds`/`elementIds` → shots → frames as
   `{start, end}`, plus all entities and all generations). It carries the
   same data the UI loads (the exact JSON shape differs — see cli.md);
   re-read it before a batch of edits, since the human may have changed
   prompts, notes, or selections in the UI.
-- `bun run story list sequences|scenes|shots|entities [--sequence <id>]
+- `node scripts/story.ts list sequences|scenes|shots|entities [--sequence <id>]
 --project <dir>` — flat listings (sequences include scene/shot counts).
 - Raw reads are fine: `sqlite3 <projectDir>/story.db "SELECT ..."` (add
   `-json` for parseable output; `.schema` shows the DDL).
@@ -152,7 +153,7 @@ it; `--select` on a fresh row or your own iteration is fine.
 
 | Situation                       | Do                                                                    |
 | ------------------------------- | --------------------------------------------------------------------- |
-| Any `bun run story` command     | pass `--project <projectDir>` (or `--db`)                             |
+| Any `node scripts/story.ts` command     | pass `--project <projectDir>` (or `--db`)                             |
 | Fresh script/brief              | full breakdown → ONE `import --file batch.json`                       |
 | Frame prompt tweak              | `set-frame --shot <id> --role start\|end --prompt "…"` (upsert)       |
 | Other field tweak               | `update <table> <id> --set field=value` (whitelisted fields — cli.md) |

@@ -4,9 +4,13 @@
 project's `story.db`. Run it from the repo root:
 
 ```bash
-bun run story <command> [flags]        # preferred
-bunx tsx scripts/story.ts <command> …  # equivalent
+node scripts/story.ts <command> [flags]   # preferred — plain Node (≥ 23.6), no other tooling
+npx tsx scripts/story.ts <command> …      # equivalent (any Node with deps installed)
+bun run story <command> …                 # equivalent if bun is available
 ```
+
+Requires the repo's dependencies installed (`npm install` or `bun install`
+both work).
 
 Every command prints JSON to stdout. Failures exit `1` with a JSON error
 object on stderr (`{ "error": "...", "details"?, "issues"? }`). stderr may
@@ -27,9 +31,9 @@ Watch the `GENMEDIA_UI_PROJECT` fallback: in a shell where it is exported
 (e.g. the dev-server smoke-run), omitting `--project` does **not** give you
 `./story.db` in the cwd — it silently reads/writes the env project's DB.
 
-**Always pass `--project` (or `--db`).** `bun run` executes with cwd at the
-repo root regardless of where you invoked it, so the `./story.db` default
-does not follow your shell's directory. Opening a path that doesn't exist
+**Always pass `--project` (or `--db`).** The CLI is invoked from the repo
+root (where `scripts/story.ts` lives), so the `./story.db` default points at
+the repo, not your project. Opening a path that doesn't exist
 creates a fresh, empty DB there — a typo'd `--project` silently gives you an
 empty database, so double-check the path if a lookup unexpectedly fails.
 
@@ -48,7 +52,7 @@ batches so follow-up commands are predictable.
 ### create-sequence
 
 ```bash
-bun run story create-sequence --title T [--logline L] \
+node scripts/story.ts create-sequence --title T [--logline L] \
   [--script S | --script-file path] [--id id] --project <dir>
 ```
 
@@ -58,7 +62,7 @@ file (resolved from the cwd — use absolute paths).
 ### add-scene
 
 ```bash
-bun run story add-scene --sequence <id> --title T \
+node scripts/story.ts add-scene --sequence <id> --title T \
   [--script-excerpt S | --script-excerpt-file path] [--synopsis S] \
   [--location <locId>] [--order N] [--id id] --project <dir>
 ```
@@ -69,7 +73,7 @@ bun run story add-scene --sequence <id> --title T \
 ### add-shot
 
 ```bash
-bun run story add-shot --scene <id> --prompt P [--description D] \
+node scripts/story.ts add-shot --scene <id> --prompt P [--description D] \
   [--camera C] [--duration N] [--order N] [--id id] --project <dir>
 ```
 
@@ -81,7 +85,7 @@ import-style id.
 ### set-frame (upsert)
 
 ```bash
-bun run story set-frame --shot <id> --role start|end --prompt P [--id id] \
+node scripts/story.ts set-frame --shot <id> --role start|end --prompt P [--id id] \
   --project <dir>
 ```
 
@@ -91,7 +95,7 @@ missing (`UNIQUE(shot_id, role)`). This is the way to revise frame prompts.
 ### add-entity
 
 ```bash
-bun run story add-entity --sequence <id> --type character|location|element \
+node scripts/story.ts add-entity --sequence <id> --type character|location|element \
   --name N [--description D] [--prompt P] [--notes N] \
   [--kind prop|vehicle|creature|effect|other] [--id id] --project <dir>
 ```
@@ -102,9 +106,9 @@ image-model-ready appearance prompt used for reference images.
 ### link / set-location
 
 ```bash
-bun run story link --scene <id> --character <chrId> --project <dir>
-bun run story link --scene <id> --element <elmId> --project <dir>
-bun run story set-location --scene <id> --location <locId> --project <dir>
+node scripts/story.ts link --scene <id> --character <chrId> --project <dir>
+node scripts/story.ts link --scene <id> --element <elmId> --project <dir>
+node scripts/story.ts set-location --scene <id> --location <locId> --project <dir>
 ```
 
 `link` takes exactly one of `--character` / `--element`; duplicates are
@@ -113,7 +117,7 @@ no-ops. Entities must belong to the scene's sequence.
 ### record-generation
 
 ```bash
-bun run story record-generation \
+node scripts/story.ts record-generation \
   --target-type frame|shot|character|location|element --target-id <id> \
   --kind image|video|audio --path <asset path> \
   [--request-id R] [--endpoint-id E] [--params '<JSON object>'] \
@@ -130,7 +134,7 @@ gallery does not store them). Output: `{ "generation": {...}, "selected": bool }
 ### update
 
 ```bash
-bun run story update <table> <id> --set field=value [--set field=value ...] \
+node scripts/story.ts update <table> <id> --set field=value [--set field=value ...] \
   --project <dir>
 ```
 
@@ -157,7 +161,7 @@ Prints the updated row.
 ### delete
 
 ```bash
-bun run story delete <table> <id> --project <dir>
+node scripts/story.ts delete <table> <id> --project <dir>
 ```
 
 Cascades: deleting a sequence removes its scenes/shots/frames/entities;
@@ -167,11 +171,11 @@ be deleted (selected references become NULL).
 ### list / show
 
 ```bash
-bun run story list sequences --project <dir>          # + sceneCount, shotCount
-bun run story list scenes  [--sequence <id>] --project <dir>
-bun run story list shots   [--sequence <id>] --project <dir>
-bun run story list entities [--sequence <id>] --project <dir>  # {characters, locations, elements}
-bun run story show sequence <id> --project <dir>      # full JSON tree
+node scripts/story.ts list sequences --project <dir>          # + sceneCount, shotCount
+node scripts/story.ts list scenes  [--sequence <id>] --project <dir>
+node scripts/story.ts list shots   [--sequence <id>] --project <dir>
+node scripts/story.ts list entities [--sequence <id>] --project <dir>  # {characters, locations, elements}
+node scripts/story.ts show sequence <id> --project <dir>      # full JSON tree
 ```
 
 `show sequence` returns
@@ -184,7 +188,7 @@ Code against the shape you actually read.
 ### import (batch — one transaction)
 
 ```bash
-bun run story import --file batch.json --project <dir>
+node scripts/story.ts import --file batch.json --project <dir>
 ```
 
 Writes an entire breakdown atomically (all-or-nothing). Batch shape
@@ -380,7 +384,7 @@ same woman" — image models have no memory between calls.
 ### Step 2 — import (one call, one transaction)
 
 ```bash
-bun run story import --project myproj --file myproj/batch.json
+node scripts/story.ts import --project myproj --file myproj/batch.json
 ```
 
 Output starts with the counts (then the full tree):
@@ -410,7 +414,7 @@ genmedia run fal-ai/flux/dev \
   --download "myproj/story-assets/chr_mara/{request_id}.{ext}" --json
 # -> request_id req_img_001, saved myproj/story-assets/chr_mara/req_img_001.png
 
-bun run story record-generation --project myproj \
+node scripts/story.ts record-generation --project myproj \
   --target-type character --target-id chr_mara \
   --kind image --path story-assets/chr_mara/req_img_001.png \
   --request-id req_img_001 --endpoint-id fal-ai/flux/dev \
@@ -425,7 +429,7 @@ genmedia run fal-ai/nano-banana-pro/edit \
   --prompt "<frm_01a_start prompt, verbatim from the DB>" \
   --download "myproj/story-assets/frm_01a_start/{request_id}.{ext}" --json
 
-bun run story record-generation --project myproj \
+node scripts/story.ts record-generation --project myproj \
   --target-type frame --target-id frm_01a_start \
   --kind image --path story-assets/frm_01a_start/req_img_002.png \
   --request-id req_img_002 --endpoint-id fal-ai/nano-banana-pro/edit --select
@@ -438,38 +442,38 @@ SUBMIT=$(genmedia run <image-to-video endpoint> \
   --async --json)
 # poll with `genmedia status`, download into myproj/story-assets/shot_01a/, then:
 
-bun run story record-generation --project myproj \
+node scripts/story.ts record-generation --project myproj \
   --target-type shot --target-id shot_01a \
   --kind video --path story-assets/shot_01a/req_vid_001.mp4 \
   --request-id req_vid_001 --endpoint-id <image-to-video endpoint> --select
 
-bun run story update shots shot_01a --project myproj --set status=review
+node scripts/story.ts update shots shot_01a --project myproj --set status=review
 ```
 
 ### Step 4 — iterate & query
 
 ```bash
 # Full tree (re-read before editing — the human may have changed things in the UI)
-bun run story show sequence seq_last_ferry --project myproj
+node scripts/story.ts show sequence seq_last_ferry --project myproj
 
 # Revise a frame prompt (upsert), then regenerate just that frame
-bun run story set-frame --project myproj --shot shot_01b --role end \
+node scripts/story.ts set-frame --project myproj --shot shot_01b --role end \
   --prompt "REVISED: Extreme close-up of an open antique brass pocket watch, cream dial, hands at midnight, warm dusk light, macro cinematic film still"
 
 # Tweak fields
-bun run story update scenes scn_01_dock_at_dusk --project myproj --set status=ready
-bun run story update shots shot_01a --project myproj --set notes="human liked take 1"
+node scripts/story.ts update scenes scn_01_dock_at_dusk --project myproj --set status=ready
+node scripts/story.ts update shots shot_01a --project myproj --set notes="human liked take 1"
 
 # Add things after the fact
-bun run story add-entity --project myproj --sequence seq_last_ferry \
+node scripts/story.ts add-entity --project myproj --sequence seq_last_ferry \
   --type element --name "Ferry Horn" --kind other --description "The mournful ferry horn"
-bun run story link --project myproj --scene scn_01_dock_at_dusk --element elm_ferry_horn
-bun run story add-scene --project myproj --sequence seq_last_ferry \
+node scripts/story.ts link --project myproj --scene scn_01_dock_at_dusk --element elm_ferry_horn
+node scripts/story.ts add-scene --project myproj --sequence seq_last_ferry \
   --title "Epilogue" --synopsis "The dock, empty at dawn." --location loc_harbor_dock
 
 # Flat listings
-bun run story list sequences --project myproj
-bun run story list entities --project myproj --sequence seq_last_ferry
+node scripts/story.ts list sequences --project myproj
+node scripts/story.ts list entities --project myproj --sequence seq_last_ferry
 
 # Raw read-only SQL (never write SQL — CLI only)
 sqlite3 -json myproj/story.db \

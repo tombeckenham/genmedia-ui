@@ -10,9 +10,11 @@ import {
 } from '../schemas/gallery'
 import { storyboardSchema, type Storyboard } from '../schemas/storyboard'
 import { readJsonFile, atomicWriteJson } from './fs'
+import { readStoryboardOnDisk, writeVerdict } from './storyboard-io'
 import {
   isSafeSessionId,
   lastSessionPath,
+  projectDir,
   sessionDataPath,
   sessionsDir,
   storyboardPath,
@@ -124,14 +126,35 @@ export const getStoryboard = createServerFn({ method: 'GET' }).handler(
   },
 )
 
+// Thrown when the on-disk storyboard can't be parsed/verified. Not retryable —
+// both writers rename atomically, so this means durable corruption or an
+// unknown schema, never a transient torn read.
+export const STORYBOARD_UNREADABLE = 'storyboard-unreadable'
+
+// Conflicts are reported as a typed result (not a thrown error) so retry
+// decisions never depend on error messages surviving server-fn serialization.
+export type UpdateStoryboardResult = { conflict: true } | { conflict: false; doc: Storyboard }
+
 export const updateStoryboard = createServerFn({ method: 'POST' })
-  .validator(storyboardSchema)
-  .handler(async ({ data }): Promise<Storyboard> => {
-    // v1: whole-document write. Patch/merge semantics land in a later phase.
-    const doc: Storyboard = { ...data, updated_at: Date.now() }
+  .validator(z.object({ expected_updated_at: z.number().nullable(), storyboard: storyboardSchema }))
+  .handler(async ({ data }): Promise<UpdateStoryboardResult> => {
+    // Optimistic concurrency: the Claude agent writes this file too. See
+    // storyboard-io.ts for the verdict semantics.
+    const onDisk = await readStoryboardOnDisk(storyboardPath())
+    const verdict = writeVerdict(onDisk, data.expected_updated_at)
+    if (verdict === 'unreadable') throw new Error(STORYBOARD_UNREADABLE)
+    if (verdict === 'conflict') return { conflict: true }
+    // Whole-document write, but conflict-checked above.
+    const doc: Storyboard = { ...data.storyboard, updated_at: Date.now() }
     await atomicWriteJson(storyboardPath(), doc)
-    return doc
+    return { conflict: false, doc }
   })
+
+// The client can't know the project dir; components need it to relativize
+// take paths correctly (never by pattern-matching path segments).
+export const getProjectInfo = createServerFn({ method: 'GET' }).handler(
+  (): Promise<{ project_dir: string }> => Promise.resolve({ project_dir: projectDir() }),
+)
 
 export const getModelSchema = createServerFn({ method: 'GET' })
   .validator(z.object({ endpointId: z.string() }))

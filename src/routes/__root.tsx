@@ -3,6 +3,7 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
+import { Toaster } from '../components/ui/sonner'
 
 import appCss from '../styles.css?url'
 
@@ -44,6 +45,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
+        <Toaster position="bottom-center" />
         <TanStackDevtools
           config={{
             position: 'bottom-right',

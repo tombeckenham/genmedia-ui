@@ -1,3 +1,4 @@
+import { realpath } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { join, resolve, sep } from 'node:path'
 
@@ -43,4 +44,24 @@ export function isSafeSessionId(id: string): boolean {
 export function isAllowedMediaPath(candidate: string): boolean {
   const abs = resolve(candidate)
   return [galleryDir(), projectDir()].some((root) => abs === root || abs.startsWith(root + sep))
+}
+
+// Symlink-resolved allowed roots. Realpathing both sides of the comparison is
+// what defeats symlink smuggling (a link inside a root pointing outside it) —
+// and is also required on macOS, where /tmp and /var are themselves symlinks.
+// Roots that don't exist yet are simply not allowed.
+export async function allowedRealMediaRoots(): Promise<string[]> {
+  const roots: string[] = []
+  for (const dir of [galleryDir(), projectDir()]) {
+    try {
+      roots.push(await realpath(dir))
+    } catch {
+      // Missing root (e.g. no gallery yet) — nothing under it can be served.
+    }
+  }
+  return roots
+}
+
+export function isUnderRoot(candidate: string, roots: string[]): boolean {
+  return roots.some((root) => candidate === root || candidate.startsWith(root + sep))
 }

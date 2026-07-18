@@ -1,14 +1,14 @@
 {
   "schema_version": 1,
   "title": "Lighthouse Teaser",
-  "updated_at": 1784330400000,
+  "updated_at": 1784334587688,
   "scenes": [
     {
       "id": "scene-01",
       "title": "Drone approach",
       "prompt": "Cinematic aerial drone shot slowly approaching a solitary white lighthouse on a rocky headland at dusk, golden hour, waves crashing below, gentle push-in",
       "status": "ready",
-      "notes": "",
+      "notes": "More golden hour warmth, slower push-in",
       "selected_take": "019f725d-e63e-7962-a4b3-41ca94cc7143",
       "starred": [],
       "takes": [
@@ -32,7 +32,7 @@
       "title": "Waves at the rocks",
       "prompt": "Low angle cinematic shot of powerful ocean waves crashing against dark rocks below a lighthouse at dusk, backlit sea spray, slow motion feel",
       "status": "ready",
-      "notes": "",
+      "notes": "bigger waves, hold the wide shot longer",
       "selected_take": "019f725d-fbfb-7030-862e-d1262380f252",
       "starred": [],
       "takes": [

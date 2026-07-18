@@ -1,6 +1,7 @@
 import { useDraggable } from '@dnd-kit/core'
 import { useEffect, useRef } from 'react'
-import { Clock, Layers } from 'lucide-react'
+import { Clock, Layers, Sparkles } from 'lucide-react'
+import { EmptyState } from '#/components/ui/empty-state'
 import type { RunRecord } from '#/lib/schemas/gallery'
 import { formatDuration, formatRelativeTime } from '#/lib/format'
 import { toStoredTakePath } from '#/lib/media-path'
@@ -139,9 +140,11 @@ export function RunsFeed({
 
   if (ordered.length === 0) {
     return (
-      <p className="rounded-lg border border-dashed border-zinc-800 p-6 text-sm text-zinc-500">
-        No runs in this session yet.
-      </p>
+      <EmptyState
+        icon={Sparkles}
+        title="No runs in this session yet"
+        hint="Ask Claude to generate a shot and it appears here live, ready to drag onto a scene."
+      />
     )
   }
 

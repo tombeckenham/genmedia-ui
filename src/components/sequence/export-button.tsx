@@ -43,7 +43,11 @@ export function ExportButton({ items, title }: { items: SequenceItem[]; title: s
       anchor.href = url
       anchor.download = `${slugifyTitle(title)}.mp4`
       anchor.click()
-      URL.revokeObjectURL(url)
+      // Defer revocation: Safari/Firefox can abort the download if the URL is
+      // revoked before the browser has started reading it.
+      setTimeout(() => {
+        URL.revokeObjectURL(url)
+      }, 10_000)
       toast.success('Sequence exported', { description: `${items.length} scenes concatenated.` })
     } catch (error) {
       toast.error('Export failed', {

@@ -1,6 +1,7 @@
 import { useNavigate } from '@tanstack/react-router'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Pause, Play, Volume2, VolumeX, X } from 'lucide-react'
+import { toast } from 'sonner'
 import { formatClock, locateTime, resolveSequence, totalDuration } from '#/lib/export/sequence'
 import type { Storyboard } from '#/lib/schemas/storyboard'
 import { cn } from '#/lib/utils'
@@ -35,7 +36,18 @@ function useClipDurations(urls: string[]): number[] {
           return next
         })
       }
+      // A clip that errors (even after metadata) collapses back to 0 so the
+      // scrubber matches the player, which skips broken clips. User-facing
+      // reporting is owned by the player's own error handling.
+      const onError = () => {
+        setDurations((prev) => {
+          const next = [...prev]
+          next[index] = 0
+          return next
+        })
+      }
       video.addEventListener('loadedmetadata', onMeta)
+      video.addEventListener('error', onError)
       return video
     })
     return () => {
@@ -60,12 +72,21 @@ export function SequencePlayer({ storyboard }: { storyboard: Storyboard | null }
   const [playing, setPlaying] = useState(true)
   const [muted, setMuted] = useState(true)
   const [clipTime, setClipTime] = useState(0)
+  // Bumped on every seek so the drive effect re-runs even when the seek stays
+  // within the current clip (index/slot unchanged) — otherwise a second
+  // scrubber click in the same clip would be silently dropped, then applied
+  // late by whatever re-render came next.
+  const [seekGen, setSeekGen] = useState(0)
 
   const videoRef0 = useRef<HTMLVideoElement>(null)
   const videoRef1 = useRef<HTMLVideoElement>(null)
   const refForSlot = useCallback((slot: Slot) => (slot === 0 ? videoRef0 : videoRef1), [])
-  // Offset (seconds) to apply to the active clip once it's ready — set on seek.
-  const seekOffsetRef = useRef(0)
+  // Offset (seconds) to apply to the active clip once it's ready — set on
+  // seek, null when no seek is pending. 0 is a real target (rewind), so it
+  // must not double as the sentinel.
+  const seekOffsetRef = useRef<number | null>(null)
+  // True once the whole sequence has finished; the next play restarts from 0.
+  const endedRef = useRef(false)
 
   const otherSlot: Slot = activeSlot === 0 ? 1 : 0
   const total = totalDuration(durations)
@@ -76,8 +97,10 @@ export function SequencePlayer({ storyboard }: { storyboard: Storyboard | null }
     (index: number, offset: number) => {
       if (items.length === 0) return
       const clamped = Math.max(0, Math.min(index, items.length - 1))
+      endedRef.current = false
       seekOffsetRef.current = offset
       setClipTime(offset)
+      setSeekGen((generation) => generation + 1)
       setActiveSlot(0)
       setCurrentIndex(clamped)
     },
@@ -86,14 +109,37 @@ export function SequencePlayer({ storyboard }: { storyboard: Storyboard | null }
 
   const advance = useCallback(() => {
     if (currentIndex + 1 >= items.length) {
+      endedRef.current = true
       setPlaying(false)
       return
     }
-    seekOffsetRef.current = 0
+    seekOffsetRef.current = null
     setClipTime(0)
     setActiveSlot((slot) => (slot === 0 ? 1 : 0))
     setCurrentIndex((index) => index + 1)
   }, [currentIndex, items.length])
+
+  // Toast + skip for a clip whose media failed to load, so playback never
+  // hangs silently on a black frame.
+  const skipBrokenClip = useCallback(
+    (sceneTitle: string | undefined) => {
+      toast.error(`Couldn't load "${sceneTitle ?? 'scene'}"`, {
+        description: 'Skipping this scene.',
+      })
+      advance()
+    },
+    [advance],
+  )
+
+  const togglePlay = useCallback(() => {
+    if (endedRef.current) {
+      endedRef.current = false
+      jumpTo(0, 0)
+      setPlaying(true)
+      return
+    }
+    setPlaying((value) => !value)
+  }, [jumpTo])
 
   // Drive the active element: apply any pending seek, then play/pause. The
   // inactive element stays paused while it preloads the next clip.
@@ -103,12 +149,20 @@ export function SequencePlayer({ storyboard }: { storyboard: Storyboard | null }
     if (inactive !== null) inactive.pause()
     if (active === null) return undefined
 
+    // A failed load (often while preloading in the inactive slot, where no new
+    // error event fires at swap time) leaves readyState at 0 forever — without
+    // this check we'd wait on a loadedmetadata that never comes.
+    if (active.error !== null) {
+      skipBrokenClip(items[currentIndex]?.sceneTitle)
+      return undefined
+    }
+
     active.muted = muted
     const offset = seekOffsetRef.current
-    seekOffsetRef.current = 0
+    seekOffsetRef.current = null
 
     const apply = () => {
-      if (offset > 0 && Math.abs(active.currentTime - offset) > 0.05) {
+      if (offset !== null && Math.abs(active.currentTime - offset) > 0.05) {
         active.currentTime = offset
       }
       if (playing) void active.play().catch(() => {})
@@ -127,7 +181,17 @@ export function SequencePlayer({ storyboard }: { storyboard: Storyboard | null }
     return () => {
       active.removeEventListener('loadedmetadata', onReady)
     }
-  }, [currentIndex, activeSlot, otherSlot, playing, muted, refForSlot])
+  }, [
+    currentIndex,
+    activeSlot,
+    otherSlot,
+    playing,
+    muted,
+    seekGen,
+    refForSlot,
+    items,
+    skipBrokenClip,
+  ])
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -141,7 +205,7 @@ export function SequencePlayer({ storyboard }: { storyboard: Storyboard | null }
       switch (event.key) {
         case ' ':
           event.preventDefault()
-          setPlaying((value) => !value)
+          togglePlay()
           break
         case 'ArrowLeft':
           event.preventDefault()
@@ -168,7 +232,7 @@ export function SequencePlayer({ storyboard }: { storyboard: Storyboard | null }
     return () => {
       window.removeEventListener('keydown', onKey)
     }
-  }, [currentIndex, jumpTo, navigate])
+  }, [currentIndex, jumpTo, navigate, togglePlay])
 
   const seekToClientX = (clientX: number, rect: DOMRect) => {
     if (total <= 0) return
@@ -241,6 +305,9 @@ export function SequencePlayer({ storyboard }: { storyboard: Storyboard | null }
               onEnded={() => {
                 if (isActive) advance()
               }}
+              onError={() => {
+                if (isActive) skipBrokenClip(item?.sceneTitle)
+              }}
             />
           )
         })}
@@ -257,7 +324,7 @@ export function SequencePlayer({ storyboard }: { storyboard: Storyboard | null }
         >
           <div
             className="absolute inset-y-0 left-0 rounded-full bg-teal-400"
-            style={{ width: total > 0 ? `${(elapsed / total) * 100}%` : '0%' }}
+            style={{ width: total > 0 ? `${Math.min((elapsed / total) * 100, 100)}%` : '0%' }}
           />
           {/* Scene boundary ticks */}
           {durations.map((_, index) => {
@@ -278,7 +345,7 @@ export function SequencePlayer({ storyboard }: { storyboard: Storyboard | null }
             type="button"
             aria-label={playing ? 'Pause (space)' : 'Play (space)'}
             onClick={() => {
-              setPlaying((value) => !value)
+              togglePlay()
             }}
             className="flex items-center gap-1 text-zinc-200 hover:text-white"
           >

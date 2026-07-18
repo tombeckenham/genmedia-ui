@@ -162,7 +162,10 @@ function setupAudioTrack(
   audioTrack: AudioTrackInput | undefined,
   clipCount: number,
 ): AudioBufferSource | null {
-  if (audioTrack === undefined || audioTrack.buffers.length !== clipCount) return null
+  if (audioTrack === undefined) return null
+  if (audioTrack.buffers.length !== clipCount) {
+    throw new Error(`Audio track has ${audioTrack.buffers.length} buffers for ${clipCount} clips`)
+  }
   const source = new AudioBufferSource({
     codec: audioTrack.codec ?? 'aac',
     bitrate: audioTrack.bitrate ?? QUALITY_HIGH,

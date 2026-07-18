@@ -497,10 +497,10 @@ sqlite3 -json myproj/story.db \
 
 ## Schema
 
-[schema.sql](schema.sql) in this directory is a verbatim copy of the
-canonical `src/db/schema.sql` in the genmedia-ui repo (which mirrors
-`SCHEMA_SQL` in `src/db/ddl.ts`). If they ever disagree, the repo's file
-wins. Highlights: `frames` is `UNIQUE(shot_id, role)`; deletes cascade down
+Introspect the live schema with `sqlite3 <projectDir>/story.db .schema`;
+the canonical DDL is `src/db/schema.sql` in the genmedia-ui repo (which
+mirrors `SCHEMA_SQL` in `src/db/ddl.ts`).
+Highlights: `frames` is `UNIQUE(shot_id, role)`; deletes cascade down
 the tree; `generations` is polymorphic on `(target_type, target_id)`;
 every mutation bumps the owning row's and the ancestor sequence's
 `updated_at` (the UI's change signal).

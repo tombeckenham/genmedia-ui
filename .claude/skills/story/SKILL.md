@@ -23,8 +23,9 @@ every write, so each CLI call you make shows up in the UI immediately.
 All writes go through the story CLI (`bun run story ...` from the genmedia-ui
 repo). **Never mutate the DB with hand-written SQL** — the CLI keeps ids,
 `updated_at` bumps, and referential checks consistent. Read-only `sqlite3`
-queries are fine (the full DDL is in [references/schema.sql](references/schema.sql),
-a copy of the canonical `src/db/schema.sql` in the genmedia-ui repo).
+queries are fine (introspect the live schema with
+`sqlite3 <projectDir>/story.db .schema`; the canonical DDL lives in the
+genmedia-ui repo at `src/db/schema.sql`).
 
 For the complete command reference with a worked end-to-end example, see
 [references/cli.md](references/cli.md). Load the `genmedia` skill for how to
@@ -144,7 +145,7 @@ it; `--select` on a fresh row or your own iteration is fine.
 - `bun run story list sequences|scenes|shots|entities [--sequence <id>]
 --project <dir>` — flat listings (sequences include scene/shot counts).
 - Raw reads are fine: `sqlite3 <projectDir>/story.db "SELECT ..."` (add
-  `-json` for parseable output). Schema: [references/schema.sql](references/schema.sql).
+  `-json` for parseable output; `.schema` shows the DDL).
   Reads only — never write SQL to the live DB.
 
 ## Quick reference

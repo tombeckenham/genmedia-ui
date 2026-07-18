@@ -9,11 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SequenceRouteImport } from './routes/sequence'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SceneSceneIdRouteImport } from './routes/scene.$sceneId'
 import { Route as ApiMediaRouteImport } from './routes/api/media'
 import { Route as ApiEventsRouteImport } from './routes/api/events'
 
+const SequenceRoute = SequenceRouteImport.update({
+  id: '/sequence',
+  path: '/sequence',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -37,12 +43,14 @@ const ApiEventsRoute = ApiEventsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/sequence': typeof SequenceRoute
   '/api/events': typeof ApiEventsRoute
   '/api/media': typeof ApiMediaRoute
   '/scene/$sceneId': typeof SceneSceneIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/sequence': typeof SequenceRoute
   '/api/events': typeof ApiEventsRoute
   '/api/media': typeof ApiMediaRoute
   '/scene/$sceneId': typeof SceneSceneIdRoute
@@ -50,20 +58,29 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/sequence': typeof SequenceRoute
   '/api/events': typeof ApiEventsRoute
   '/api/media': typeof ApiMediaRoute
   '/scene/$sceneId': typeof SceneSceneIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/events' | '/api/media' | '/scene/$sceneId'
+  fullPaths:
+    '/' | '/sequence' | '/api/events' | '/api/media' | '/scene/$sceneId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/events' | '/api/media' | '/scene/$sceneId'
-  id: '__root__' | '/' | '/api/events' | '/api/media' | '/scene/$sceneId'
+  to: '/' | '/sequence' | '/api/events' | '/api/media' | '/scene/$sceneId'
+  id:
+    | '__root__'
+    | '/'
+    | '/sequence'
+    | '/api/events'
+    | '/api/media'
+    | '/scene/$sceneId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SequenceRoute: typeof SequenceRoute
   ApiEventsRoute: typeof ApiEventsRoute
   ApiMediaRoute: typeof ApiMediaRoute
   SceneSceneIdRoute: typeof SceneSceneIdRoute
@@ -71,6 +88,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sequence': {
+      id: '/sequence'
+      path: '/sequence'
+      fullPath: '/sequence'
+      preLoaderRoute: typeof SequenceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -104,6 +128,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SequenceRoute: SequenceRoute,
   ApiEventsRoute: ApiEventsRoute,
   ApiMediaRoute: ApiMediaRoute,
   SceneSceneIdRoute: SceneSceneIdRoute,

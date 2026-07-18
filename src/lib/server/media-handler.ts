@@ -1,8 +1,8 @@
 import { createReadStream } from 'node:fs'
-import { stat } from 'node:fs/promises'
+import { realpath, stat } from 'node:fs/promises'
 import { isAbsolute, resolve } from 'node:path'
 import { Readable } from 'node:stream'
-import { isAllowedMediaPath, projectDir } from './paths'
+import { allowedRealMediaRoots, isAllowedMediaPath, isUnderRoot, projectDir } from './paths'
 import { contentTypeFor, parseRange } from './media-helpers'
 
 // Serves media files (video/image/audio) from the gallery or project dir with
@@ -34,13 +34,26 @@ export async function handleMediaRequest(request: Request): Promise<Response> {
   }
 
   const resolved = isAbsolute(rawPath) ? resolve(rawPath) : resolve(projectDir(), rawPath)
+  // Cheap lexical pre-check; the authoritative check below runs on realpaths.
   if (!isAllowedMediaPath(resolved)) {
+    return new Response('Forbidden', { status: 403 })
+  }
+
+  // Resolve symlinks BEFORE the allowlist decision and serve the realpath, so
+  // a link inside an allowed root can't smuggle a target outside it.
+  let real: string
+  try {
+    real = await realpath(resolved)
+  } catch {
+    return new Response('Not found', { status: 404 })
+  }
+  if (!isUnderRoot(real, await allowedRealMediaRoots())) {
     return new Response('Forbidden', { status: 403 })
   }
 
   let stats
   try {
-    stats = await stat(resolved)
+    stats = await stat(real)
   } catch (err) {
     if (err instanceof Error && 'code' in err && err.code === 'ENOENT') {
       return new Response('Not found', { status: 404 })
@@ -69,7 +82,7 @@ export async function handleMediaRequest(request: Request): Promise<Response> {
     }
     if (range.type === 'ok') {
       const { start, end } = range
-      return new Response(fileBody(resolved, { start, end }), {
+      return new Response(fileBody(real, { start, end }), {
         status: 206,
         headers: {
           ...baseHeaders,
@@ -81,7 +94,7 @@ export async function handleMediaRequest(request: Request): Promise<Response> {
     // range.type === 'ignore': malformed header, fall through to full body.
   }
 
-  return new Response(fileBody(resolved), {
+  return new Response(fileBody(real), {
     status: 200,
     headers: { ...baseHeaders, 'Content-Length': String(size) },
   })

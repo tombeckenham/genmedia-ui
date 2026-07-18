@@ -1,4 +1,4 @@
-import { mkdtemp, writeFile } from 'node:fs/promises'
+import { mkdtemp, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -59,6 +59,21 @@ describe('handleMediaRequest', () => {
     expect(res.headers.get('content-range')).toBe('bytes 2-5/10')
     expect(res.headers.get('content-length')).toBe('4')
     expect(await res.text()).toBe('2345')
+  })
+
+  it('403s a symlink inside the root that targets a file outside it', async () => {
+    const outside = await mkdtemp(join(tmpdir(), 'media-outside-'))
+    await writeFile(join(outside, 'secret.txt'), 'secret', 'utf-8')
+    await symlink(join(outside, 'secret.txt'), join(projectDir, 'sneaky.mp4'))
+    const res = await handleMediaRequest(req('sneaky.mp4'))
+    expect(res.status).toBe(403)
+  })
+
+  it('serves a symlink whose target stays inside the root', async () => {
+    await symlink(join(projectDir, 'clip.mp4'), join(projectDir, 'alias.mp4'))
+    const res = await handleMediaRequest(req('alias.mp4'))
+    expect(res.status).toBe(200)
+    expect(await res.text()).toBe('0123456789')
   })
 
   it('416s an unsatisfiable range', async () => {

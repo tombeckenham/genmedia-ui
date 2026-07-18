@@ -1,5 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { Link } from '@tanstack/react-router'
 import { useEffect, useRef, useState } from 'react'
 import { Film, GripVertical } from 'lucide-react'
 import { Textarea } from '#/components/ui/textarea'
@@ -29,32 +30,42 @@ const NOTES_DEBOUNCE_MS = 600
 function SceneThumb({ scene }: { scene: Scene }) {
   const take = scene.takes.find((t) => t.request_id === scene.selected_take) ?? scene.takes[0]
 
-  if (take === undefined) {
-    return (
+  const inner =
+    take === undefined ? (
       <div className="flex aspect-video w-full items-center justify-center rounded-md border border-zinc-800 bg-zinc-900">
         <Film className="size-6 text-zinc-600" strokeWidth={1.5} />
       </div>
+    ) : (
+      <div className="aspect-video w-full overflow-hidden rounded-md border border-zinc-800 bg-zinc-900">
+        {take.kind === 'video' ? (
+          <video
+            src={mediaSrc(take.path)}
+            muted
+            playsInline
+            preload="metadata"
+            className="size-full object-cover"
+          />
+        ) : take.kind === 'image' ? (
+          <img src={mediaSrc(take.path)} alt="" loading="lazy" className="size-full object-cover" />
+        ) : (
+          <div className="flex size-full items-center justify-center">
+            <Film className="size-6 text-zinc-600" strokeWidth={1.5} />
+          </div>
+        )}
+      </div>
     )
-  }
 
+  // Only the thumbnail navigates to the flipper — the drag handle lives on the
+  // grip button, so this Link never competes with reordering listeners.
   return (
-    <div className="aspect-video w-full overflow-hidden rounded-md border border-zinc-800 bg-zinc-900">
-      {take.kind === 'video' ? (
-        <video
-          src={mediaSrc(take.path)}
-          muted
-          playsInline
-          preload="metadata"
-          className="size-full object-cover"
-        />
-      ) : take.kind === 'image' ? (
-        <img src={mediaSrc(take.path)} alt="" loading="lazy" className="size-full object-cover" />
-      ) : (
-        <div className="flex size-full items-center justify-center">
-          <Film className="size-6 text-zinc-600" strokeWidth={1.5} />
-        </div>
-      )}
-    </div>
+    <Link
+      to="/scene/$sceneId"
+      params={{ sceneId: scene.id }}
+      aria-label={`Open ${scene.title} in the version flipper`}
+      className="block rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+    >
+      {inner}
+    </Link>
   )
 }
 

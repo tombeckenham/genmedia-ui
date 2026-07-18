@@ -51,6 +51,34 @@ export function setSceneNotes(sceneId: string, notes: string): StoryboardTransfo
   })
 }
 
+// Set (or clear, with null) the human-selected take for a scene. Absolute, so
+// applying it to the optimistic cache and the fresh disk read agree.
+export function setSelectedTake(sceneId: string, requestId: string | null): StoryboardTransform {
+  return (doc) => ({
+    ...doc,
+    scenes: doc.scenes.map((scene) =>
+      scene.id === sceneId ? { ...scene, selected_take: requestId } : scene,
+    ),
+  })
+}
+
+// Add or remove a request from a scene's starred list. Toggling reads the
+// current membership, so it must be driven from a single base — the mutation
+// applies it to the cache and the fresh read separately (same base state), and
+// the conflict retry re-reads before re-applying, so a star can't double-add.
+export function toggleStar(sceneId: string, requestId: string): StoryboardTransform {
+  return (doc) => ({
+    ...doc,
+    scenes: doc.scenes.map((scene) => {
+      if (scene.id !== sceneId) return scene
+      const starred = scene.starred.includes(requestId)
+        ? scene.starred.filter((id) => id !== requestId)
+        : [...scene.starred, requestId]
+      return { ...scene, starred }
+    }),
+  })
+}
+
 interface MutationContext {
   previous: Storyboard | undefined
 }

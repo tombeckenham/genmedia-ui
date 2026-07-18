@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SceneSceneIdRouteImport } from './routes/scene.$sceneId'
 import { Route as ApiMediaRouteImport } from './routes/api/media'
 import { Route as ApiEventsRouteImport } from './routes/api/events'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SceneSceneIdRoute = SceneSceneIdRouteImport.update({
+  id: '/scene/$sceneId',
+  path: '/scene/$sceneId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiMediaRoute = ApiMediaRouteImport.update({
@@ -33,30 +39,34 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/events': typeof ApiEventsRoute
   '/api/media': typeof ApiMediaRoute
+  '/scene/$sceneId': typeof SceneSceneIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/events': typeof ApiEventsRoute
   '/api/media': typeof ApiMediaRoute
+  '/scene/$sceneId': typeof SceneSceneIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api/events': typeof ApiEventsRoute
   '/api/media': typeof ApiMediaRoute
+  '/scene/$sceneId': typeof SceneSceneIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/events' | '/api/media'
+  fullPaths: '/' | '/api/events' | '/api/media' | '/scene/$sceneId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/events' | '/api/media'
-  id: '__root__' | '/' | '/api/events' | '/api/media'
+  to: '/' | '/api/events' | '/api/media' | '/scene/$sceneId'
+  id: '__root__' | '/' | '/api/events' | '/api/media' | '/scene/$sceneId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiEventsRoute: typeof ApiEventsRoute
   ApiMediaRoute: typeof ApiMediaRoute
+  SceneSceneIdRoute: typeof SceneSceneIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scene/$sceneId': {
+      id: '/scene/$sceneId'
+      path: '/scene/$sceneId'
+      fullPath: '/scene/$sceneId'
+      preLoaderRoute: typeof SceneSceneIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/media': {
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiEventsRoute: ApiEventsRoute,
   ApiMediaRoute: ApiMediaRoute,
+  SceneSceneIdRoute: SceneSceneIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

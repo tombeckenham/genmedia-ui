@@ -1,0 +1,14 @@
+{
+  "name": "genmedia-ui",
+  "owner": {
+    "name": "Tom Beckenham"
+  },
+  "description": "Companion skills for Mission Control (genmedia-ui) — the shared storyboard between you and a Claude Code agent generating media with the genmedia CLI.",
+  "plugins": [
+    {
+      "name": "storyboard",
+      "source": "./docs/skill/storyboard",
+      "description": "The storyboard.json contract: schema, takes/<scene-id>/ download convention, async pending[] tracking, the UI's direction queue, and the re-read-before-generating habit."
+    }
+  ]
+}

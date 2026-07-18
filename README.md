@@ -165,10 +165,22 @@ collaborate with the board — the schema, the `takes/<scene-id>/` download
 convention, async job tracking, and the drain-the-direction-queue habit. Install
 it alongside the CLI's own `genmedia` skill:
 
+```
+# One-liner, straight from GitHub (inside Claude Code):
+/plugin marketplace add tombeckenham/genmedia-ui
+/plugin install storyboard@genmedia-ui
+```
+
 ```bash
+# Or copy the folder:
 cp -r docs/skill/storyboard ~/.claude/skills/          # user-level, or
 cp -r docs/skill/storyboard /path/to/project/.claude/skills/   # project-level
 ```
+
+The skill is plain `SKILL.md` (an open format), so it also works in other
+agents — `~/.codex/skills/` for OpenAI Codex, `~/.grok/skills/` for Grok Build
+(which also reads Claude Code skill locations directly). See
+[docs/skill/README.md](./docs/skill/README.md).
 
 See [`docs/skill/README.md`](./docs/skill/README.md) for details.
 

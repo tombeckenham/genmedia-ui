@@ -1,21 +1,54 @@
+import { useDraggable } from '@dnd-kit/core'
 import { useEffect, useRef } from 'react'
 import { Clock, Layers } from 'lucide-react'
 import type { RunRecord } from '#/lib/schemas/gallery'
 import { formatDuration, formatRelativeTime } from '#/lib/format'
+import { toStoredTakePath } from '#/lib/media-path'
 import { cn } from '#/lib/utils'
 import { MediaThumb } from './media-thumb'
 
-function RunCard({ run, isNew }: { run: RunRecord; isNew: boolean }) {
+function RunCard({ run, isNew, sceneIds }: { run: RunRecord; isNew: boolean; sceneIds: string[] }) {
   const firstFile = run.files[0]
   const extraCount = run.files.length - 1
   const duration = formatDuration(run.duration_ms)
+  const firstPath = firstFile?.path ?? null
+
+  // Auto-annotation: a run whose file already lives under takes/<sceneId>/ is
+  // display-tagged with that scene (no write).
+  const sceneTag =
+    firstPath === null ? null : (sceneIds.find((id) => firstPath.includes(`/takes/${id}/`)) ?? null)
+
+  // Drag source for attaching this run to a scene. Only runs with a usable file
+  // path can be attached, so others are non-draggable.
+  const canAttach = firstFile !== undefined && firstPath !== null
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `run:${run.request_id}`,
+    disabled: !canAttach,
+    data:
+      canAttach && firstPath !== null
+        ? {
+            type: 'run',
+            take: {
+              request_id: run.request_id,
+              endpoint_id: run.endpoint_id,
+              path: toStoredTakePath(firstPath),
+              kind: firstFile.kind,
+            },
+          }
+        : { type: 'run' },
+  })
 
   return (
     <li
+      ref={setNodeRef}
       className={cn(
         'flex gap-4 rounded-lg border border-zinc-800/80 bg-zinc-900/40 p-3 transition-colors hover:border-zinc-700',
         isNew && 'animate-in fade-in slide-in-from-top-4 duration-700',
+        canAttach && 'cursor-grab touch-none active:cursor-grabbing',
+        isDragging && 'opacity-50',
       )}
+      {...attributes}
+      {...listeners}
     >
       <div className="relative">
         {firstFile === undefined ? (
@@ -52,6 +85,11 @@ function RunCard({ run, isNew }: { run: RunRecord; isNew: boolean }) {
           <span>
             {run.files.length} file{run.files.length === 1 ? '' : 's'}
           </span>
+          {sceneTag !== null && (
+            <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-300">
+              {sceneTag}
+            </span>
+          )}
         </div>
       </div>
     </li>
@@ -61,7 +99,7 @@ function RunCard({ run, isNew }: { run: RunRecord; isNew: boolean }) {
 // Reverse-chronological run cards. Runs arriving after mount (via SSE-driven
 // refetch) animate in; the initial set is treated as already seen so the whole
 // feed doesn't animate on load.
-export function RunsFeed({ runs }: { runs: RunRecord[] }) {
+export function RunsFeed({ runs, sceneIds }: { runs: RunRecord[]; sceneIds: string[] }) {
   const seenRef = useRef<Set<string>>(new Set())
   const hasMountedRef = useRef(false)
 
@@ -92,7 +130,12 @@ export function RunsFeed({ runs }: { runs: RunRecord[] }) {
   return (
     <ul className="flex flex-col gap-2">
       {ordered.map((run) => (
-        <RunCard key={run.request_id} run={run} isNew={newIds.has(run.request_id)} />
+        <RunCard
+          key={run.request_id}
+          run={run}
+          isNew={newIds.has(run.request_id)}
+          sceneIds={sceneIds}
+        />
       ))}
     </ul>
   )

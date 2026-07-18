@@ -11,7 +11,10 @@ const config = defineConfig({
   resolve: { tsconfigPaths: true },
   plugins: [
     devtools(),
-    nitro({ rollupConfig: { external: [/^@sentry\//] } }),
+    // serverDir opts into nitro's server/ scan: server/routes/api/media.get.ts
+    // must register as a specific nitro route so browser image/video requests
+    // (Sec-Fetch-Dest) aren't misclassified as static assets in dev.
+    nitro({ serverDir: 'server', rollupConfig: { external: [/^@sentry\//] } }),
     tailwindcss(),
     tanstackStart(),
     viteReact(),

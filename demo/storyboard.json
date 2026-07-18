@@ -1,14 +1,14 @@
 {
   "schema_version": 1,
   "title": "Lighthouse Teaser",
-  "updated_at": 1784330400000,
+  "updated_at": 1784333844047,
   "scenes": [
     {
       "id": "scene-01",
       "title": "Drone approach",
       "prompt": "Cinematic aerial drone shot slowly approaching a solitary white lighthouse on a rocky headland at dusk, golden hour, waves crashing below, gentle push-in",
       "status": "ready",
-      "notes": "",
+      "notes": "More golden hour warmth, slower push-in",
       "selected_take": "019f725d-e63e-7962-a4b3-41ca94cc7143",
       "starred": [],
       "takes": [

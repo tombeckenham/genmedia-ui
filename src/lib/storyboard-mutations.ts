@@ -57,7 +57,18 @@ export function setSelectedTake(sceneId: string, requestId: string | null): Stor
   return (doc) => ({
     ...doc,
     scenes: doc.scenes.map((scene) =>
-      scene.id === sceneId ? { ...scene, selected_take: requestId } : scene,
+      scene.id === sceneId
+        ? {
+            ...scene,
+            selected_take: requestId,
+            // Selecting a take IS the human's sign-off — status 'ready' is the
+            // signal the Claude agent keys off to leave the scene alone (see
+            // docs/skill/storyboard/SKILL.md). Clearing the selection returns
+            // the scene to needs-review when there are takes to review.
+            status:
+              requestId !== null ? 'ready' : scene.takes.length > 0 ? 'needs-review' : scene.status,
+          }
+        : scene,
     ),
   })
 }

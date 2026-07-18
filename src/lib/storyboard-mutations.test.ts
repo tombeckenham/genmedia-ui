@@ -88,10 +88,25 @@ describe('setSelectedTake', () => {
     expect(next.scenes[1]?.selected_take).toBe('req-9')
   })
 
-  it('clears the selection with null', () => {
+  it("marks the scene ready — the agent's leave-it-alone signal", () => {
+    const next = setSelectedTake('scene-01', 'req-9')(board('scene-01', 'scene-02'))
+    expect(next.scenes[0]?.status).toBe('ready')
+    expect(next.scenes[1]?.status).toBe('draft')
+  })
+
+  it('clearing the selection returns a scene with takes to needs-review', () => {
+    const withTake = appendTake('scene-01', take)(board('scene-01'))
+    const selected = setSelectedTake('scene-01', take.request_id)(withTake)
+    const cleared = setSelectedTake('scene-01', null)(selected)
+    expect(cleared.scenes[0]?.selected_take).toBeNull()
+    expect(cleared.scenes[0]?.status).toBe('needs-review')
+  })
+
+  it('clearing the selection on a takeless scene leaves status untouched', () => {
     const withSelection = setSelectedTake('scene-01', 'req-9')(board('scene-01'))
     const cleared = setSelectedTake('scene-01', null)(withSelection)
     expect(cleared.scenes[0]?.selected_take).toBeNull()
+    expect(cleared.scenes[0]?.status).toBe('ready')
   })
 
   it('is idempotent', () => {

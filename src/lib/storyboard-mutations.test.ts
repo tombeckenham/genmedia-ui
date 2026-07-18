@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import type { Scene, Storyboard } from './schemas/storyboard'
-import { appendTake, reorderScenes, setSceneNotes } from './storyboard-mutations'
+import {
+  appendTake,
+  reorderScenes,
+  setSceneNotes,
+  setSelectedTake,
+  setStar,
+} from './storyboard-mutations'
 
 function scene(id: string): Scene {
   return {
@@ -71,5 +77,57 @@ describe('setSceneNotes', () => {
     const next = setSceneNotes('scene-01', 'warmer light')(board('scene-01', 'scene-02'))
     expect(next.scenes[0]?.notes).toBe('warmer light')
     expect(next.scenes[1]?.notes).toBe('')
+  })
+})
+
+describe('setSelectedTake', () => {
+  it('sets the selected take on the target scene only', () => {
+    const next = setSelectedTake('scene-02', 'req-9')(board('scene-01', 'scene-02'))
+    expect(next.scenes[0]?.selected_take).toBeNull()
+    expect(next.scenes[1]?.selected_take).toBe('req-9')
+  })
+
+  it('clears the selection with null', () => {
+    const withSelection = setSelectedTake('scene-01', 'req-9')(board('scene-01'))
+    const cleared = setSelectedTake('scene-01', null)(withSelection)
+    expect(cleared.scenes[0]?.selected_take).toBeNull()
+  })
+
+  it('is idempotent', () => {
+    const t = setSelectedTake('scene-01', 'req-9')
+    expect(t(t(board('scene-01')))).toEqual(t(board('scene-01')))
+  })
+})
+
+describe('setStar', () => {
+  it('adds the request to the target scene only', () => {
+    const next = setStar('scene-01', 'req-1', true)(board('scene-01', 'scene-02'))
+    expect(next.scenes[0]?.starred).toEqual(['req-1'])
+    expect(next.scenes[1]?.starred).toEqual([])
+  })
+
+  it('removes the request when set to false', () => {
+    const starred = setStar('scene-01', 'req-1', true)(board('scene-01'))
+    expect(setStar('scene-01', 'req-1', false)(starred).scenes[0]?.starred).toEqual([])
+  })
+
+  it('is idempotent against ANY base (absolute intent survives conflict retries)', () => {
+    const on = setStar('scene-01', 'req-1', true)
+    const base = board('scene-01')
+    const alreadyOn = on(base)
+    // Re-applying to a base where another writer already starred it must not
+    // invert — this is the two-tabs race a toggle would lose.
+    expect(on(alreadyOn).scenes[0]?.starred).toEqual(['req-1'])
+    expect(on(base)).toEqual(on(on(base)))
+  })
+
+  it('leaves other starred requests intact', () => {
+    const withTwo = setStar(
+      'scene-01',
+      'req-2',
+      true,
+    )(setStar('scene-01', 'req-1', true)(board('scene-01')))
+    const next = setStar('scene-01', 'req-1', false)(withTwo)
+    expect(next.scenes[0]?.starred).toEqual(['req-2'])
   })
 })

@@ -51,6 +51,33 @@ export function setSceneNotes(sceneId: string, notes: string): StoryboardTransfo
   })
 }
 
+// Set (or clear, with null) the human-selected take for a scene. Absolute, so
+// applying it to the optimistic cache and the fresh disk read agree.
+export function setSelectedTake(sceneId: string, requestId: string | null): StoryboardTransform {
+  return (doc) => ({
+    ...doc,
+    scenes: doc.scenes.map((scene) =>
+      scene.id === sceneId ? { ...scene, selected_take: requestId } : scene,
+    ),
+  })
+}
+
+// Set a request's starred membership ABSOLUTELY — never a toggle. A relative
+// invert re-applies blindly when the conflict retry re-reads a base another
+// writer just changed (two tabs both starring can end un-starred); an absolute
+// intent is idempotent against any base. Callers compute the desired state
+// from what the user saw when they pressed the key.
+export function setStar(sceneId: string, requestId: string, starred: boolean): StoryboardTransform {
+  return (doc) => ({
+    ...doc,
+    scenes: doc.scenes.map((scene) => {
+      if (scene.id !== sceneId) return scene
+      const without = scene.starred.filter((id) => id !== requestId)
+      return { ...scene, starred: starred ? [...without, requestId] : without }
+    }),
+  })
+}
+
 interface MutationContext {
   previous: Storyboard | undefined
 }

@@ -69,36 +69,51 @@ function SceneNotes({ scene }: { scene: Scene }) {
     if (!focusedRef.current) setValue(scene.notes)
   }, [scene.notes])
 
-  useEffect(() => {
-    return () => {
-      if (timerRef.current !== null) clearTimeout(timerRef.current)
-    }
-  }, [])
-
   const save = (next: string) => {
     if (next !== scene.notes) mutation.mutate(setSceneNotes(scene.id, next))
   }
 
+  // Flush (not discard) a pending debounced save on unmount, or the last
+  // few keystrokes silently vanish when the card unmounts mid-debounce.
+  const flushRef = useRef<(() => void) | null>(null)
+  flushRef.current = () => {
+    if (timerRef.current !== null) {
+      clearTimeout(timerRef.current)
+      timerRef.current = null
+      save(value)
+    }
+  }
+  useEffect(() => {
+    return () => {
+      flushRef.current?.()
+    }
+  }, [])
+
   return (
-    <Textarea
-      value={value}
-      placeholder="Notes for Claude…"
-      className="min-h-14 bg-zinc-900/60"
-      onFocus={() => {
-        focusedRef.current = true
-      }}
-      onChange={(event) => {
-        const next = event.target.value
-        setValue(next)
-        if (timerRef.current !== null) clearTimeout(timerRef.current)
-        timerRef.current = setTimeout(() => save(next), NOTES_DEBOUNCE_MS)
-      }}
-      onBlur={() => {
-        focusedRef.current = false
-        if (timerRef.current !== null) clearTimeout(timerRef.current)
-        save(value)
-      }}
-    />
+    <div className="flex flex-col gap-1">
+      <Textarea
+        value={value}
+        placeholder="Notes for Claude…"
+        className="min-h-14 bg-zinc-900/60"
+        onFocus={() => {
+          focusedRef.current = true
+        }}
+        onChange={(event) => {
+          const next = event.target.value
+          setValue(next)
+          if (timerRef.current !== null) clearTimeout(timerRef.current)
+          timerRef.current = setTimeout(() => save(next), NOTES_DEBOUNCE_MS)
+        }}
+        onBlur={() => {
+          focusedRef.current = false
+          if (timerRef.current !== null) clearTimeout(timerRef.current)
+          save(value)
+        }}
+      />
+      {mutation.isError && (
+        <span className="text-[11px] text-red-400">Not saved — edit again to retry.</span>
+      )}
+    </div>
   )
 }
 

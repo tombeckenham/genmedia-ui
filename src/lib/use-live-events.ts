@@ -35,6 +35,24 @@ export function useLiveEvents() {
       }
     })
 
+    // Events emitted while the connection was down are lost forever — resync
+    // everything on every (re)connect so gaps can't leave the UI silently
+    // stale. The initial open costs one redundant refetch round, that's fine.
+    source.addEventListener('open', () => {
+      void queryClient.invalidateQueries({ queryKey: ['sessions'] })
+      void queryClient.invalidateQueries({ queryKey: ['active-session'] })
+      void queryClient.invalidateQueries({ queryKey: ['session'] })
+      void queryClient.invalidateQueries({ queryKey: ['storyboard'] })
+    })
+
+    source.addEventListener('error', () => {
+      // EventSource auto-reconnects unless CLOSED; that state means the
+      // browser gave up (e.g. non-200) and live updates are dead for good.
+      if (source.readyState === EventSource.CLOSED) {
+        console.warn('genmedia-ui: /api/events stream closed permanently; live updates disabled')
+      }
+    })
+
     return () => {
       source.close()
     }

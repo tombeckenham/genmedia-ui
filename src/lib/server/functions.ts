@@ -10,6 +10,7 @@ import {
 } from '../schemas/gallery'
 import { storyboardSchema, type Storyboard } from '../schemas/storyboard'
 import { readJsonFile, atomicWriteJson } from './fs'
+import { readStoryboardOnDisk, writeVerdict } from './storyboard-io'
 import {
   isSafeSessionId,
   lastSessionPath,
@@ -125,30 +126,28 @@ export const getStoryboard = createServerFn({ method: 'GET' }).handler(
   },
 )
 
-// Thrown (by message) when the on-disk storyboard moved between the client's
-// read and its write. Clients treat it as retryable: re-read, re-apply, retry.
-export const STORYBOARD_CONFLICT = 'storyboard-conflict'
+// Thrown when the on-disk storyboard can't be parsed/verified. Not retryable —
+// both writers rename atomically, so this means durable corruption or an
+// unknown schema, never a transient torn read.
+export const STORYBOARD_UNREADABLE = 'storyboard-unreadable'
+
+// Conflicts are reported as a typed result (not a thrown error) so retry
+// decisions never depend on error messages surviving server-fn serialization.
+export type UpdateStoryboardResult = { conflict: true } | { conflict: false; doc: Storyboard }
 
 export const updateStoryboard = createServerFn({ method: 'POST' })
   .validator(z.object({ expected_updated_at: z.number().nullable(), storyboard: storyboardSchema }))
-  .handler(async ({ data }): Promise<Storyboard> => {
-    // Optimistic concurrency: the Claude agent writes this file too. Reject
-    // when disk no longer matches what the client based its transform on.
-    let onDisk: Storyboard | null
-    try {
-      const parsed = storyboardSchema.safeParse(await readJsonFile(storyboardPath()))
-      onDisk = parsed.success ? parsed.data : null
-    } catch {
-      // Torn read mid-rewrite — surface as a conflict so the client retries.
-      throw new Error(STORYBOARD_CONFLICT)
-    }
-    if (onDisk !== null && onDisk.updated_at !== data.expected_updated_at) {
-      throw new Error(STORYBOARD_CONFLICT)
-    }
+  .handler(async ({ data }): Promise<UpdateStoryboardResult> => {
+    // Optimistic concurrency: the Claude agent writes this file too. See
+    // storyboard-io.ts for the verdict semantics.
+    const onDisk = await readStoryboardOnDisk(storyboardPath())
+    const verdict = writeVerdict(onDisk, data.expected_updated_at)
+    if (verdict === 'unreadable') throw new Error(STORYBOARD_UNREADABLE)
+    if (verdict === 'conflict') return { conflict: true }
     // Whole-document write, but conflict-checked above.
     const doc: Storyboard = { ...data.storyboard, updated_at: Date.now() }
     await atomicWriteJson(storyboardPath(), doc)
-    return doc
+    return { conflict: false, doc }
   })
 
 // The client can't know the project dir; components need it to relativize

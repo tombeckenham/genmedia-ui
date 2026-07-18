@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "title": "Lighthouse Teaser",
-  "updated_at": 1784333844047,
+  "updated_at": 1784334587688,
   "scenes": [
     {
       "id": "scene-01",
@@ -32,7 +32,7 @@
       "title": "Waves at the rocks",
       "prompt": "Low angle cinematic shot of powerful ocean waves crashing against dark rocks below a lighthouse at dusk, backlit sea spray, slow motion feel",
       "status": "ready",
-      "notes": "",
+      "notes": "bigger waves, hold the wide shot longer",
       "selected_take": "019f725d-fbfb-7030-862e-d1262380f252",
       "starred": [],
       "takes": [

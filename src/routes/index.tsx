@@ -18,7 +18,13 @@ import { StoryboardBoard } from '#/components/board/storyboard-board'
 import { PendingJobs } from '#/components/feed/pending-jobs'
 import { RunsFeed } from '#/components/feed/runs-feed'
 import { SessionPicker } from '#/components/feed/session-picker'
-import { activeSessionQuery, sessionQuery, sessionsQuery, storyboardQuery } from '#/lib/queries'
+import {
+  activeSessionQuery,
+  projectInfoQuery,
+  sessionQuery,
+  sessionsQuery,
+  storyboardQuery,
+} from '#/lib/queries'
 import { takeSchema } from '#/lib/schemas/storyboard'
 import { appendTake, reorderScenes, useStoryboardMutation } from '#/lib/storyboard-mutations'
 import { useLiveEvents } from '#/lib/use-live-events'
@@ -38,6 +44,7 @@ export const Route = createFileRoute('/')({
       context.queryClient.ensureQueryData(sessionsQuery),
       context.queryClient.ensureQueryData(activeSessionQuery),
       context.queryClient.ensureQueryData(storyboardQuery),
+      context.queryClient.ensureQueryData(projectInfoQuery),
     ])
     const selected = deps.session ?? activeId ?? undefined
     if (selected !== undefined) {
@@ -61,6 +68,7 @@ function MissionControl() {
   const { data: sessions } = useSuspenseQuery(sessionsQuery)
   const { data: activeId } = useSuspenseQuery(activeSessionQuery)
   const { data: storyboard } = useSuspenseQuery(storyboardQuery)
+  const { data: projectInfo } = useSuspenseQuery(projectInfoQuery)
 
   const selectedId = sessionParam ?? activeId ?? sessions[0]?.session_id ?? null
 
@@ -165,7 +173,12 @@ function MissionControl() {
               </p>
             ) : (
               // Keyed by session so the "seen runs" animation state resets on switch.
-              <RunsFeed key={selectedId} runs={runs} sceneIds={sceneIds} />
+              <RunsFeed
+                key={selectedId}
+                runs={runs}
+                sceneIds={sceneIds}
+                projectRoot={projectInfo.project_dir}
+              />
             )}
           </section>
         </div>

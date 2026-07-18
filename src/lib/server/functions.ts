@@ -13,6 +13,7 @@ import { readJsonFile, atomicWriteJson } from './fs'
 import {
   isSafeSessionId,
   lastSessionPath,
+  projectDir,
   sessionDataPath,
   sessionsDir,
   storyboardPath,
@@ -124,14 +125,37 @@ export const getStoryboard = createServerFn({ method: 'GET' }).handler(
   },
 )
 
+// Thrown (by message) when the on-disk storyboard moved between the client's
+// read and its write. Clients treat it as retryable: re-read, re-apply, retry.
+export const STORYBOARD_CONFLICT = 'storyboard-conflict'
+
 export const updateStoryboard = createServerFn({ method: 'POST' })
-  .validator(storyboardSchema)
+  .validator(z.object({ expected_updated_at: z.number().nullable(), storyboard: storyboardSchema }))
   .handler(async ({ data }): Promise<Storyboard> => {
-    // v1: whole-document write. Patch/merge semantics land in a later phase.
-    const doc: Storyboard = { ...data, updated_at: Date.now() }
+    // Optimistic concurrency: the Claude agent writes this file too. Reject
+    // when disk no longer matches what the client based its transform on.
+    let onDisk: Storyboard | null
+    try {
+      const parsed = storyboardSchema.safeParse(await readJsonFile(storyboardPath()))
+      onDisk = parsed.success ? parsed.data : null
+    } catch {
+      // Torn read mid-rewrite — surface as a conflict so the client retries.
+      throw new Error(STORYBOARD_CONFLICT)
+    }
+    if (onDisk !== null && onDisk.updated_at !== data.expected_updated_at) {
+      throw new Error(STORYBOARD_CONFLICT)
+    }
+    // Whole-document write, but conflict-checked above.
+    const doc: Storyboard = { ...data.storyboard, updated_at: Date.now() }
     await atomicWriteJson(storyboardPath(), doc)
     return doc
   })
+
+// The client can't know the project dir; components need it to relativize
+// take paths correctly (never by pattern-matching path segments).
+export const getProjectInfo = createServerFn({ method: 'GET' }).handler(
+  (): Promise<{ project_dir: string }> => Promise.resolve({ project_dir: projectDir() }),
+)
 
 export const getModelSchema = createServerFn({ method: 'GET' })
   .validator(z.object({ endpointId: z.string() }))

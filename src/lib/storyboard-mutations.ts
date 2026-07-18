@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Storyboard, Take } from './schemas/storyboard'
-import { updateStoryboard } from './server/functions'
+import { STORYBOARD_CONFLICT, getStoryboard, updateStoryboard } from './server/functions'
 
 // Storyboard edits are whole-document writes (updateStoryboard). To stay safe
 // against Claude writing the same file concurrently, every payload is derived
@@ -57,13 +57,22 @@ export function useStoryboardMutation() {
   const queryClient = useQueryClient()
 
   return useMutation<Storyboard, Error, StoryboardTransform, MutationContext>({
-    mutationFn: (transform) => {
-      const base = queryClient.getQueryData<Storyboard>(STORYBOARD_KEY)
-      if (base === undefined) throw new Error('storyboard not loaded')
-      return updateStoryboard({ data: transform(base) })
+    mutationFn: async (transform) => {
+      // Base the write on the freshest ON-DISK doc, not the query cache: the
+      // Claude agent writes this file too. updateStoryboard rejects with
+      // STORYBOARD_CONFLICT if disk moves between this read and the write,
+      // and the retry below re-reads and re-applies the transform.
+      const fresh = await getStoryboard()
+      const base = fresh ?? queryClient.getQueryData<Storyboard>(STORYBOARD_KEY)
+      if (base == null) throw new Error('storyboard not loaded')
+      return updateStoryboard({
+        data: { expected_updated_at: fresh?.updated_at ?? null, storyboard: transform(base) },
+      })
     },
-    onMutate: async (transform) => {
-      await queryClient.cancelQueries({ queryKey: STORYBOARD_KEY })
+    retry: (failureCount, error) => error.message.includes(STORYBOARD_CONFLICT) && failureCount < 3,
+    onMutate: (transform) => {
+      // No cancelQueries here: a concurrent SSE-driven refetch is delivering
+      // external state we want, never something to suppress.
       const previous = queryClient.getQueryData<Storyboard>(STORYBOARD_KEY)
       if (previous !== undefined) {
         queryClient.setQueryData<Storyboard>(STORYBOARD_KEY, transform(previous))

@@ -7,7 +7,17 @@ import { toStoredTakePath } from '#/lib/media-path'
 import { cn } from '#/lib/utils'
 import { MediaThumb } from './media-thumb'
 
-function RunCard({ run, isNew, sceneIds }: { run: RunRecord; isNew: boolean; sceneIds: string[] }) {
+function RunCard({
+  run,
+  isNew,
+  sceneIds,
+  projectRoot,
+}: {
+  run: RunRecord
+  isNew: boolean
+  sceneIds: string[]
+  projectRoot: string | null
+}) {
   const firstFile = run.files[0]
   const extraCount = run.files.length - 1
   const duration = formatDuration(run.duration_ms)
@@ -31,7 +41,7 @@ function RunCard({ run, isNew, sceneIds }: { run: RunRecord; isNew: boolean; sce
             take: {
               request_id: run.request_id,
               endpoint_id: run.endpoint_id,
-              path: toStoredTakePath(firstPath),
+              path: toStoredTakePath(firstPath, projectRoot),
               kind: firstFile.kind,
             },
           }
@@ -99,7 +109,15 @@ function RunCard({ run, isNew, sceneIds }: { run: RunRecord; isNew: boolean; sce
 // Reverse-chronological run cards. Runs arriving after mount (via SSE-driven
 // refetch) animate in; the initial set is treated as already seen so the whole
 // feed doesn't animate on load.
-export function RunsFeed({ runs, sceneIds }: { runs: RunRecord[]; sceneIds: string[] }) {
+export function RunsFeed({
+  runs,
+  sceneIds,
+  projectRoot,
+}: {
+  runs: RunRecord[]
+  sceneIds: string[]
+  projectRoot: string | null
+}) {
   const seenRef = useRef<Set<string>>(new Set())
   const hasMountedRef = useRef(false)
 
@@ -135,6 +153,7 @@ export function RunsFeed({ runs, sceneIds }: { runs: RunRecord[]; sceneIds: stri
           run={run}
           isNew={newIds.has(run.request_id)}
           sceneIds={sceneIds}
+          projectRoot={projectRoot}
         />
       ))}
     </ul>

@@ -1,6 +1,7 @@
 import { queryOptions } from '@tanstack/react-query'
 import {
   getActiveSessionId,
+  getProjectInfo,
   getSession,
   getStoryboard,
   listSessions,
@@ -30,6 +31,13 @@ export function sessionQuery(id: string) {
 export const storyboardQuery = queryOptions({
   queryKey: ['storyboard'],
   queryFn: () => getStoryboard(),
+})
+
+// The project dir never changes for a server's lifetime — cache indefinitely.
+export const projectInfoQuery = queryOptions({
+  queryKey: ['project-info'],
+  queryFn: () => getProjectInfo(),
+  staleTime: Infinity,
 })
 
 // Polls the genmedia CLI for a single in-flight job. Callers own the polling

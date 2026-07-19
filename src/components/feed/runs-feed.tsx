@@ -13,11 +13,13 @@ function RunCard({
   isNew,
   sceneIds,
   projectRoot,
+  attachable,
 }: {
   run: RunRecord
   isNew: boolean
   sceneIds: string[]
   projectRoot: string | null
+  attachable: boolean
 }) {
   const firstFile = run.files[0]
   const extraCount = run.files.length - 1
@@ -30,8 +32,9 @@ function RunCard({
     firstPath === null ? null : (sceneIds.find((id) => firstPath.includes(`/takes/${id}/`)) ?? null)
 
   // Drag source for attaching this run to a scene. Only runs with a usable file
-  // path can be attached, so others are non-draggable.
-  const canAttach = firstFile !== undefined && firstPath !== null
+  // path can be attached, so others are non-draggable — and the whole feed is
+  // inert on pages with no scene drop targets (attachable=false).
+  const canAttach = attachable && firstFile !== undefined && firstPath !== null
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `run:${run.request_id}`,
     disabled: !canAttach,
@@ -114,10 +117,12 @@ export function RunsFeed({
   runs,
   sceneIds,
   projectRoot,
+  attachable = true,
 }: {
   runs: RunRecord[]
   sceneIds: string[]
   projectRoot: string | null
+  attachable?: boolean
 }) {
   const seenRef = useRef<Set<string>>(new Set())
   const hasMountedRef = useRef(false)
@@ -157,6 +162,7 @@ export function RunsFeed({
           isNew={newIds.has(run.request_id)}
           sceneIds={sceneIds}
           projectRoot={projectRoot}
+          attachable={attachable}
         />
       ))}
     </ul>

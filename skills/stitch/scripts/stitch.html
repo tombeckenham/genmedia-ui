@@ -145,6 +145,8 @@
       }
       const {
         ALL_FORMATS,
+        AudioBufferSink,
+        AudioBufferSource,
         AudioSampleSink,
         AudioSampleSource,
         BufferSource,
@@ -199,8 +201,11 @@
         }
         const totalDuration = clips.reduce((sum, c) => sum + c.duration, 0)
 
-        // Output: one MP4, video re-encoded back-to-back; audio is the music track
-        // if given, otherwise the clips' own audio normalized to one format.
+        // Output: one MP4, video re-encoded back-to-back. Audio modes:
+        //   'mix'     — clips' audio and the music rendered together offline
+        //               (also used for solo music at a non-default gain)
+        //   'replace' — music only, streamed straight through
+        //   'clips'   — the clips' own audio, normalized to one format
         const first = clips[0]
         const codec = await pickVideoCodec(first.track.displayWidth, first.track.displayHeight)
         const output = new Output({ format: new Mp4OutputFormat(), target: new BufferTarget() })
@@ -212,15 +217,27 @@
         output.addVideoTrack(videoSource)
 
         let musicTrack = null
-        let audioSource = null
-        const clipsHaveAudio = !manifest.music && clips.some((c) => c.audioTrack)
         if (manifest.music) {
           setStatus(`Loading ${manifest.music.name}…`)
           const musicInput = await loadInput(manifest.music.url, manifest.music.name)
           musicTrack = await musicInput.getPrimaryAudioTrack()
           if (!musicTrack) throw new Error(`${manifest.music.name} has no audio track`)
         }
-        if (manifest.music || clipsHaveAudio) {
+        const clipsHaveAudio = clips.some((c) => c.audioTrack)
+        const audioMode = musicTrack
+          ? manifest.mix || manifest.musicGain !== 1
+            ? 'mix'
+            : 'replace'
+          : clipsHaveAudio
+            ? 'clips'
+            : 'none'
+
+        let audioSource = null
+        let mixSource = null
+        if (audioMode === 'mix') {
+          mixSource = new AudioBufferSource({ codec: 'aac', bitrate: QUALITY_MEDIUM })
+          output.addAudioTrack(mixSource)
+        } else if (audioMode !== 'none') {
           audioSource = new AudioSampleSource({
             codec: 'aac',
             bitrate: QUALITY_MEDIUM,
@@ -247,7 +264,7 @@
             )
             sample.close()
           }
-          if (!manifest.music && audioSource && clip.audioTrack) {
+          if (audioMode === 'clips' && audioSource && clip.audioTrack) {
             const audioSink = new AudioSampleSink(clip.audioTrack)
             const audioFirst = await clip.audioTrack.getFirstTimestamp()
             for await (const sample of audioSink.samples(audioFirst, audioFirst + clip.duration)) {
@@ -260,8 +277,9 @@
           clipItems[i].className = 'done'
         }
 
-        // Music: lay the track under the whole timeline, looping if it runs short.
-        if (musicTrack && audioSource) {
+        // Music (replace mode): lay the track under the whole timeline,
+        // looping if it runs short.
+        if (audioMode === 'replace' && musicTrack && audioSource) {
           setStatus('Adding music…')
           const musicDuration = await musicTrack.computeDuration()
           if (musicDuration <= 0) throw new Error('music track has zero duration')
@@ -277,6 +295,54 @@
             musicOffset += Math.min(musicDuration, remaining)
             if (musicDuration >= remaining) break
           }
+        }
+
+        // Mix mode: render the clips' own audio and the music (under a gain)
+        // onto one offline timeline, then encode the single rendered buffer.
+        if (audioMode === 'mix' && musicTrack && mixSource) {
+          setStatus('Mixing audio…')
+          const ctx = new OfflineAudioContext(2, Math.ceil(totalDuration * 48000), 48000)
+
+          if (manifest.mix) {
+            let clipOffset = 0
+            for (const clip of clips) {
+              if (clip.audioTrack) {
+                const audioFirst = await clip.audioTrack.getFirstTimestamp()
+                const sink = new AudioBufferSink(clip.audioTrack)
+                for await (const { buffer, timestamp } of sink.buffers(
+                  audioFirst,
+                  audioFirst + clip.duration,
+                )) {
+                  const node = ctx.createBufferSource()
+                  node.buffer = buffer
+                  node.connect(ctx.destination)
+                  node.start(Math.max(0, clipOffset + timestamp - audioFirst))
+                }
+              }
+              clipOffset += clip.duration
+            }
+          }
+
+          const musicGainNode = ctx.createGain()
+          musicGainNode.gain.value = manifest.musicGain
+          musicGainNode.connect(ctx.destination)
+          const musicDuration = await musicTrack.computeDuration()
+          if (musicDuration <= 0) throw new Error('music track has zero duration')
+          let musicOffset = 0
+          while (musicOffset < totalDuration) {
+            const span = Math.min(musicDuration, totalDuration - musicOffset)
+            const sink = new AudioBufferSink(musicTrack)
+            for await (const { buffer, timestamp } of sink.buffers(0, span)) {
+              const node = ctx.createBufferSource()
+              node.buffer = buffer
+              node.connect(musicGainNode)
+              node.start(Math.max(0, musicOffset + timestamp))
+            }
+            musicOffset += span
+          }
+
+          const rendered = await ctx.startRendering()
+          await mixSource.add(rendered)
         }
 
         setStatus('Finalizing MP4…')

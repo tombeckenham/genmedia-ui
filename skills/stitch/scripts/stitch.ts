@@ -66,6 +66,8 @@ const { values: flags, positionals } = parseArgs({
   allowPositionals: true,
   options: {
     music: { type: 'string' },
+    mix: { type: 'boolean', default: false },
+    'music-gain': { type: 'string' },
     out: { type: 'string' },
     port: { type: 'string' },
     'no-open': { type: 'boolean', default: false },
@@ -75,7 +77,7 @@ const { values: flags, positionals } = parseArgs({
 
 if (positionals.length === 0) {
   fail(
-    'usage: node scripts/stitch.ts <video...> [--music <audio>] [--out <file.mp4>] [--port <n>] [--no-open] [--stay]',
+    'usage: node scripts/stitch.ts <video...> [--music <audio>] [--mix] [--music-gain <0..1>] [--out <file.mp4>] [--port <n>] [--no-open] [--stay]',
   )
 }
 
@@ -86,6 +88,13 @@ const videos = positionals.map((p) => ({
 const music = flags.music
   ? { path: checkFile(flags.music), type: contentTypeFor(flags.music, AUDIO_TYPES) }
   : null
+if (flags.mix && music === null) fail('--mix requires --music')
+// Mixing ducks the music under the clips' audio by default; solo music
+// (replace mode) plays at full level unless --music-gain says otherwise.
+const musicGain = flags['music-gain'] ? Number.parseFloat(flags['music-gain']) : flags.mix ? 0.5 : 1
+if (Number.isNaN(musicGain) || musicGain < 0 || musicGain > 1) {
+  fail(`invalid --music-gain: ${flags['music-gain'] ?? ''} (expected 0..1)`)
+}
 const outPath = path.resolve(flags.out ?? 'stitched.mp4')
 const requestedPort = flags.port ? Number.parseInt(flags.port, 10) : 0
 if (Number.isNaN(requestedPort)) fail(`invalid --port: ${flags.port ?? ''}`)
@@ -119,6 +128,8 @@ const htmlTemplate = readFileSync(new URL('./stitch.html', import.meta.url), 'ut
 const manifest = {
   videos: videos.map((v, i) => ({ name: path.basename(v.path), url: `/media/${i}` })),
   music: music ? { name: path.basename(music.path), url: '/music' } : null,
+  mix: flags.mix,
+  musicGain,
   outName: path.basename(outPath),
   bundleUrl: mediabunnyBundle ? '/mediabunny.mjs' : MEDIABUNNY_CDN,
 }

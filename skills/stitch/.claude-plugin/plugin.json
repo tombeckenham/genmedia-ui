@@ -1,5 +1,5 @@
 {
   "name": "stitch",
   "description": "Stitch a list of video clips into one MP4 — optionally laying a music track under the cut — via a local WebCodecs page.",
-  "version": "1.0.0"
+  "version": "1.1.0"
 }

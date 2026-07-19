@@ -73,7 +73,19 @@ function SceneThumb({ scene }: { scene: Scene }) {
   )
 }
 
-export function SceneCard({ scene, queuedForRegen }: { scene: Scene; queuedForRegen: boolean }) {
+export function SceneCard({
+  scene,
+  queuedForRegen,
+  widthClass,
+  compact,
+}: {
+  scene: Scene
+  queuedForRegen: boolean
+  /** Tailwind width class from the board's zoom level. */
+  widthClass: string
+  /** Zoomed-out rendering: thumbnail + title only, no prompt/notes chrome. */
+  compact: boolean
+}) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } =
     useSortable({ id: scene.id, data: { type: 'scene', sceneId: scene.id } })
   const mutation = useStoryboardMutation()
@@ -103,11 +115,13 @@ export function SceneCard({ scene, queuedForRegen }: { scene: Scene; queuedForRe
       saveNotes(note)
     }
   }
+  // Also keyed on `compact`: zooming out unmounts the notes textarea, so a
+  // pending debounced save must flush at that moment, not just on unmount.
   useEffect(() => {
     return () => {
       flushRef.current?.()
     }
-  }, [])
+  }, [compact])
 
   const handleRegenerate = () => {
     // The request carries the live note; the scene's own notes save on blur.
@@ -123,7 +137,9 @@ export function SceneCard({ scene, queuedForRegen }: { scene: Scene; queuedForRe
       style={style}
       data-scene-card
       className={cn(
-        'flex w-[min(30rem,80vw)] shrink-0 cursor-default flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 transition-colors',
+        'flex shrink-0 cursor-default flex-col rounded-xl border border-zinc-800 bg-zinc-900/40 transition-colors',
+        widthClass,
+        compact ? 'gap-2 p-2.5' : 'gap-3 p-4',
         isDragging && 'opacity-50',
         isOver && 'border-teal-500/60 ring-1 ring-teal-500/40',
         needsReview && 'border-purple-500/50',
@@ -141,7 +157,14 @@ export function SceneCard({ scene, queuedForRegen }: { scene: Scene; queuedForRe
         </button>
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="truncate text-base font-medium text-zinc-100">{scene.title}</h3>
+            <h3
+              className={cn(
+                'truncate font-medium text-zinc-100',
+                compact ? 'text-sm' : 'text-base',
+              )}
+            >
+              {scene.title}
+            </h3>
             <div className="flex shrink-0 items-center gap-1">
               <button
                 type="button"
@@ -176,43 +199,47 @@ export function SceneCard({ scene, queuedForRegen }: { scene: Scene; queuedForRe
 
       <SceneThumb scene={scene} />
 
-      <p className="line-clamp-3 text-sm text-zinc-400">{scene.prompt}</p>
+      {!compact && (
+        <>
+          <p className="line-clamp-3 text-sm text-zinc-400">{scene.prompt}</p>
 
-      <div className="flex items-center justify-between text-[11px] text-zinc-500">
-        <span>
-          {scene.takes.length} take{scene.takes.length === 1 ? '' : 's'}
-        </span>
-        {queuedForRegen && (
-          <span className="flex items-center gap-1 text-teal-400">
-            <RefreshCw className="size-3" /> Queued for Claude
-          </span>
-        )}
-      </div>
+          <div className="flex items-center justify-between text-[11px] text-zinc-500">
+            <span>
+              {scene.takes.length} take{scene.takes.length === 1 ? '' : 's'}
+            </span>
+            {queuedForRegen && (
+              <span className="flex items-center gap-1 text-teal-400">
+                <RefreshCw className="size-3" /> Queued for Claude
+              </span>
+            )}
+          </div>
 
-      <div className="flex flex-col gap-1">
-        <Textarea
-          value={note}
-          placeholder="Notes for Claude…"
-          className="min-h-20 bg-zinc-900/60"
-          onFocus={() => {
-            focusedRef.current = true
-          }}
-          onChange={(event) => {
-            const next = event.target.value
-            setNote(next)
-            if (timerRef.current !== null) clearTimeout(timerRef.current)
-            timerRef.current = setTimeout(() => saveNotes(next), NOTES_DEBOUNCE_MS)
-          }}
-          onBlur={() => {
-            focusedRef.current = false
-            if (timerRef.current !== null) clearTimeout(timerRef.current)
-            saveNotes(note)
-          }}
-        />
-        {mutation.isError && (
-          <span className="text-[11px] text-red-400">Not saved — edit again to retry.</span>
-        )}
-      </div>
+          <div className="flex flex-col gap-1">
+            <Textarea
+              value={note}
+              placeholder="Notes for Claude…"
+              className="min-h-20 bg-zinc-900/60"
+              onFocus={() => {
+                focusedRef.current = true
+              }}
+              onChange={(event) => {
+                const next = event.target.value
+                setNote(next)
+                if (timerRef.current !== null) clearTimeout(timerRef.current)
+                timerRef.current = setTimeout(() => saveNotes(next), NOTES_DEBOUNCE_MS)
+              }}
+              onBlur={() => {
+                focusedRef.current = false
+                if (timerRef.current !== null) clearTimeout(timerRef.current)
+                saveNotes(note)
+              }}
+            />
+            {mutation.isError && (
+              <span className="text-[11px] text-red-400">Not saved — edit again to retry.</span>
+            )}
+          </div>
+        </>
+      )}
     </div>
   )
 }

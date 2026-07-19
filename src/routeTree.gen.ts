@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SequenceRouteImport } from './routes/sequence'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StoryIndexRouteImport } from './routes/story.index'
+import { Route as StorySequenceIdRouteImport } from './routes/story.$sequenceId'
 import { Route as SceneSceneIdRouteImport } from './routes/scene.$sceneId'
 import { Route as ApiMediaRouteImport } from './routes/api/media'
 import { Route as ApiEventsRouteImport } from './routes/api/events'
@@ -23,6 +25,16 @@ const SequenceRoute = SequenceRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StoryIndexRoute = StoryIndexRouteImport.update({
+  id: '/story/',
+  path: '/story/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StorySequenceIdRoute = StorySequenceIdRouteImport.update({
+  id: '/story/$sequenceId',
+  path: '/story/$sequenceId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SceneSceneIdRoute = SceneSceneIdRouteImport.update({
@@ -47,6 +59,8 @@ export interface FileRoutesByFullPath {
   '/api/events': typeof ApiEventsRoute
   '/api/media': typeof ApiMediaRoute
   '/scene/$sceneId': typeof SceneSceneIdRoute
+  '/story/$sequenceId': typeof StorySequenceIdRoute
+  '/story/': typeof StoryIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +68,8 @@ export interface FileRoutesByTo {
   '/api/events': typeof ApiEventsRoute
   '/api/media': typeof ApiMediaRoute
   '/scene/$sceneId': typeof SceneSceneIdRoute
+  '/story/$sequenceId': typeof StorySequenceIdRoute
+  '/story': typeof StoryIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +78,28 @@ export interface FileRoutesById {
   '/api/events': typeof ApiEventsRoute
   '/api/media': typeof ApiMediaRoute
   '/scene/$sceneId': typeof SceneSceneIdRoute
+  '/story/$sequenceId': typeof StorySequenceIdRoute
+  '/story/': typeof StoryIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/sequence' | '/api/events' | '/api/media' | '/scene/$sceneId'
+    | '/'
+    | '/sequence'
+    | '/api/events'
+    | '/api/media'
+    | '/scene/$sceneId'
+    | '/story/$sequenceId'
+    | '/story/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/sequence' | '/api/events' | '/api/media' | '/scene/$sceneId'
+  to:
+    | '/'
+    | '/sequence'
+    | '/api/events'
+    | '/api/media'
+    | '/scene/$sceneId'
+    | '/story/$sequenceId'
+    | '/story'
   id:
     | '__root__'
     | '/'
@@ -76,6 +107,8 @@ export interface FileRouteTypes {
     | '/api/events'
     | '/api/media'
     | '/scene/$sceneId'
+    | '/story/$sequenceId'
+    | '/story/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -84,6 +117,8 @@ export interface RootRouteChildren {
   ApiEventsRoute: typeof ApiEventsRoute
   ApiMediaRoute: typeof ApiMediaRoute
   SceneSceneIdRoute: typeof SceneSceneIdRoute
+  StorySequenceIdRoute: typeof StorySequenceIdRoute
+  StoryIndexRoute: typeof StoryIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -100,6 +135,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/story/': {
+      id: '/story/'
+      path: '/story'
+      fullPath: '/story/'
+      preLoaderRoute: typeof StoryIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/story/$sequenceId': {
+      id: '/story/$sequenceId'
+      path: '/story/$sequenceId'
+      fullPath: '/story/$sequenceId'
+      preLoaderRoute: typeof StorySequenceIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/scene/$sceneId': {
@@ -132,6 +181,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiEventsRoute: ApiEventsRoute,
   ApiMediaRoute: ApiMediaRoute,
   SceneSceneIdRoute: SceneSceneIdRoute,
+  StorySequenceIdRoute: StorySequenceIdRoute,
+  StoryIndexRoute: StoryIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -121,8 +121,9 @@ export function SceneCard({ scene, queuedForRegen }: { scene: Scene; queuedForRe
     <div
       ref={setNodeRef}
       style={style}
+      data-scene-card
       className={cn(
-        'flex w-64 shrink-0 flex-col gap-2 rounded-lg border border-zinc-800 bg-zinc-900/40 p-3 transition-colors',
+        'flex w-[min(30rem,80vw)] shrink-0 cursor-default flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 transition-colors',
         isDragging && 'opacity-50',
         isOver && 'border-teal-500/60 ring-1 ring-teal-500/40',
         needsReview && 'border-purple-500/50',
@@ -140,7 +141,7 @@ export function SceneCard({ scene, queuedForRegen }: { scene: Scene; queuedForRe
         </button>
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="truncate text-sm font-medium text-zinc-100">{scene.title}</h3>
+            <h3 className="truncate text-base font-medium text-zinc-100">{scene.title}</h3>
             <div className="flex shrink-0 items-center gap-1">
               <button
                 type="button"
@@ -175,7 +176,7 @@ export function SceneCard({ scene, queuedForRegen }: { scene: Scene; queuedForRe
 
       <SceneThumb scene={scene} />
 
-      <p className="line-clamp-2 text-xs text-zinc-400">{scene.prompt}</p>
+      <p className="line-clamp-3 text-sm text-zinc-400">{scene.prompt}</p>
 
       <div className="flex items-center justify-between text-[11px] text-zinc-500">
         <span>
@@ -192,7 +193,7 @@ export function SceneCard({ scene, queuedForRegen }: { scene: Scene; queuedForRe
         <Textarea
           value={note}
           placeholder="Notes for Claude…"
-          className="min-h-14 bg-zinc-900/60"
+          className="min-h-20 bg-zinc-900/60"
           onFocus={() => {
             focusedRef.current = true
           }}

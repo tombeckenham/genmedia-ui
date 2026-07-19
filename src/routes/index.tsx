@@ -12,7 +12,7 @@ import {
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { PlayCircle, Radio } from 'lucide-react'
+import { BookOpen, PlayCircle, Radio } from 'lucide-react'
 import { useState } from 'react'
 import { z } from 'zod'
 import { StoryboardBoard } from '#/components/board/storyboard-board'
@@ -146,54 +146,66 @@ function MissionControl() {
         setActiveDrag(null)
       }}
     >
-      <div className="min-h-screen bg-zinc-950 text-zinc-100">
-        <div className="mx-auto flex max-w-3xl flex-col gap-6 px-6 py-8">
-          <header className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h1 className="text-xl font-semibold tracking-tight">Mission Control</h1>
-              <p className="text-sm text-zinc-500">genmedia storyboard console</p>
-            </div>
-            <div className="flex items-center gap-3">
-              {hasPlayableSequence && (
-                <Link
-                  to="/sequence"
-                  className="flex items-center gap-1.5 rounded-md border border-teal-500/40 bg-teal-500/10 px-3 py-1.5 text-sm font-medium text-teal-200 transition-colors hover:bg-teal-500/20"
-                >
-                  <PlayCircle className="size-4" /> Play sequence
-                </Link>
-              )}
-              <SessionPicker
-                sessions={sessions}
-                selectedId={selectedId}
-                onSelect={(id) => {
-                  void navigate({ search: { session: id } })
-                }}
-              />
-            </div>
-          </header>
-
-          <StoryboardBoard storyboard={storyboard} />
-
-          <PendingJobs storyboard={storyboard} completedRequestIds={completedRequestIds} />
-
-          <section className="flex flex-col gap-2">
-            <h2 className="text-xs font-semibold tracking-wide text-zinc-500 uppercase">Runs</h2>
-            {selectedId === null ? (
-              <EmptyState
-                icon={Radio}
-                title="No sessions yet"
-                hint="Runs stream in here when a Claude Code agent generates media with the genmedia CLI in this project."
-              />
-            ) : (
-              // Keyed by session so the "seen runs" animation state resets on switch.
-              <RunsFeed
-                key={selectedId}
-                runs={runs}
-                sceneIds={sceneIds}
-                projectRoot={projectInfo.project_dir}
-              />
+      <div className="flex h-dvh flex-col bg-zinc-950 text-zinc-100">
+        <header className="flex shrink-0 flex-wrap items-center justify-between gap-4 border-b border-zinc-800/80 px-6 py-3">
+          <div className="flex items-baseline gap-3">
+            <h1 className="text-lg font-semibold tracking-tight">Mission Control</h1>
+            <p className="text-sm text-zinc-500">
+              {storyboard === null ? 'genmedia storyboard console' : storyboard.title}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link
+              to="/story"
+              className="flex items-center gap-1.5 rounded-md border border-zinc-800 px-3 py-1.5 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-900"
+            >
+              <BookOpen className="size-4" /> Story
+            </Link>
+            {hasPlayableSequence && (
+              <Link
+                to="/sequence"
+                className="flex items-center gap-1.5 rounded-md border border-teal-500/40 bg-teal-500/10 px-3 py-1.5 text-sm font-medium text-teal-200 transition-colors hover:bg-teal-500/20"
+              >
+                <PlayCircle className="size-4" /> Play sequence
+              </Link>
             )}
-          </section>
+            <SessionPicker
+              sessions={sessions}
+              selectedId={selectedId}
+              onSelect={(id) => {
+                void navigate({ search: { session: id } })
+              }}
+            />
+          </div>
+        </header>
+
+        <div className="flex min-h-0 flex-1">
+          <main className="min-w-0 flex-1">
+            <StoryboardBoard storyboard={storyboard} />
+          </main>
+
+          <aside className="flex w-80 shrink-0 flex-col gap-6 overflow-y-auto border-l border-zinc-800/80 p-4 xl:w-96">
+            <PendingJobs storyboard={storyboard} completedRequestIds={completedRequestIds} />
+
+            <section className="flex flex-col gap-2">
+              <h2 className="text-xs font-semibold tracking-wide text-zinc-500 uppercase">Runs</h2>
+              {selectedId === null ? (
+                <EmptyState
+                  icon={Radio}
+                  title="No sessions yet"
+                  hint="Runs stream in here when a Claude Code agent generates media with the genmedia CLI in this project."
+                />
+              ) : (
+                // Keyed by session so the "seen runs" animation state resets on switch.
+                <RunsFeed
+                  key={selectedId}
+                  runs={runs}
+                  sceneIds={sceneIds}
+                  projectRoot={projectInfo.project_dir}
+                />
+              )}
+            </section>
+          </aside>
         </div>
 
         <DragOverlay>

@@ -1,0 +1,150 @@
+{
+  "sequence": {
+    "id": "seq_lighthouse_dawn",
+    "title": "Lighthouse Dawn — 60s",
+    "logline": "As dawn breaks over a lonely headland, an old keeper and his apprentice bring the great lamp through its final sweep of the night.",
+    "script": "LIGHTHOUSE DAWN — 60 second sequence\n\nEXT. HEADLAND — DAWN\nMist drifts over the sea. A solitary white lighthouse stands on a rocky headland as the first golden light breaks through. We drift toward it from the air, slow and deliberate.\n\nEXT. ROCKS BELOW THE TOWER — DAWN\nWaves hammer the dark rocks at the base of the cliff. Spray hangs in the golden light.\n\nINT. LIGHTHOUSE STAIR — CONTINUOUS\nWren, the young apprentice, climbs the narrow spiral of iron stairs, lamp oil can in hand. Shafts of warm dawn light cut through the small windows; dust motes turn in the beams.\n\nINT. LAMP ROOM — CONTINUOUS\nThe Keeper stands silhouetted against the glass as the great beacon makes its final rotation of the night, the beam sweeping past us in blue and gold.\n"
+  },
+  "locations": [
+    {
+      "id": "loc_headland",
+      "name": "Lighthouse Headland",
+      "description": "The exterior world of the sequence: a solitary white lighthouse on a rocky headland above the sea, wrapped in dawn mist.",
+      "prompt": "A solitary white lighthouse with a red lantern gallery on a rugged rocky headland above a cold grey-green sea, soft golden dawn light breaking through low mist, waves at the cliff base, no people, photorealistic, cinematic 16:9 film look"
+    },
+    {
+      "id": "loc_tower_interior",
+      "name": "Tower Interior",
+      "description": "Inside the lighthouse: the narrow spiral iron staircase and the glass lamp room at the top.",
+      "prompt": "Interior of an old working lighthouse: narrow spiral iron staircase painted deep green, whitewashed stone walls, small porthole windows admitting shafts of warm dawn light, dust motes in the beams, worn brass fittings, photorealistic, cinematic 16:9 film look"
+    }
+  ],
+  "characters": [
+    {
+      "id": "chr_the_keeper",
+      "name": "The Keeper",
+      "description": "The old lighthouse keeper, nearing the end of his last night watch.",
+      "prompt": "A weathered lighthouse keeper in his late 60s, short grey beard, dark navy wool sweater and oilskin coat, flat cap, deep-set kind eyes, standing posture of quiet patience, photorealistic character reference, soft directional dawn light, cinematic"
+    },
+    {
+      "id": "chr_wren",
+      "name": "Wren",
+      "description": "The keeper's teenage apprentice, up before dawn to tend the lamp.",
+      "prompt": "A teenage lighthouse apprentice, short dark wind-tousled hair, freckles, heavy cream fisherman's jumper with rolled sleeves, canvas trousers, carrying a small brass oil can, earnest expression, photorealistic character reference, warm lamplight, cinematic"
+    }
+  ],
+  "elements": [
+    {
+      "id": "elm_beacon_lamp",
+      "name": "The Beacon Lamp",
+      "kind": "prop",
+      "description": "The lighthouse's great rotating Fresnel lens and lamp — the heart of the tower.",
+      "prompt": "A massive antique first-order Fresnel lens beacon in a lighthouse lamp room, concentric glass prisms glowing warm gold from the lamp within, polished brass frame, surrounded by wraparound glass windows showing dawn sky, photorealistic, cinematic"
+    },
+    {
+      "id": "elm_dawn_mist",
+      "name": "Dawn Mist",
+      "kind": "effect",
+      "description": "Low sea mist that softens the headland and catches the first golden light.",
+      "prompt": "Low-hanging sea mist drifting over dark ocean water and rocky shore at dawn, golden sunlight diffusing through the fog in soft volumetric rays, atmospheric, photorealistic, cinematic 16:9 film look"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "scn_01_drone_approach",
+      "title": "Drone approach",
+      "scriptExcerpt": "EXT. HEADLAND — DAWN\nMist drifts over the sea. A solitary white lighthouse stands on a rocky headland as the first golden light breaks through. We drift toward it from the air, slow and deliberate.",
+      "synopsis": "Aerial establishing shot: the lighthouse emerges from dawn mist as we push in over the sea.",
+      "location": "Lighthouse Headland",
+      "elements": ["Dawn Mist"],
+      "shots": [
+        {
+          "id": "shot_01a",
+          "description": "Slow aerial push-in on the lighthouse through the mist.",
+          "prompt": "Cinematic aerial drone shot slowly approaching a solitary white lighthouse on a rocky headland at dawn, soft golden light breaking through mist, waves far below, gentle deliberate push-in, photorealistic, 16:9 film look",
+          "camera": "Aerial drone, slow push-in",
+          "duration": 8,
+          "frames": {
+            "start": "Distant aerial view of a solitary white lighthouse with a red lantern gallery on a rocky headland, half-veiled in low sea mist at dawn, golden light breaking through fog over a grey-green sea, waves far below, photorealistic, cinematic 16:9 film still",
+            "end": "Closer aerial view of a solitary white lighthouse with a red lantern gallery on a rocky headland at dawn, tower filling the left third of frame, golden mist thinning around it, sea and cliffs below, photorealistic, cinematic 16:9 film still"
+          }
+        }
+      ]
+    },
+    {
+      "id": "scn_02_waves",
+      "title": "Waves at the rocks",
+      "scriptExcerpt": "EXT. ROCKS BELOW THE TOWER — DAWN\nWaves hammer the dark rocks at the base of the cliff. Spray hangs in the golden light.",
+      "synopsis": "The power of the sea: waves crash on the rocks below the tower, spray glowing in dawn light.",
+      "location": "Lighthouse Headland",
+      "elements": ["Dawn Mist"],
+      "shots": [
+        {
+          "id": "shot_02a",
+          "description": "Low, slow-motion waves crashing against the rocks beneath the lighthouse.",
+          "prompt": "Low angle cinematic shot of powerful ocean waves crashing against dark wet rocks below a white lighthouse at dawn, sea spray catching golden light, slow motion feel, photorealistic, 16:9 film look",
+          "camera": "Low angle, locked off, slow motion",
+          "duration": 6,
+          "frames": {
+            "start": "Low angle still of a large ocean wave rearing over dark wet rocks below a white lighthouse at dawn, golden backlight through sea spray, tower visible above the cliff edge, photorealistic, cinematic 16:9 film still",
+            "end": "Low angle still of white water and sea spray exploding over dark wet rocks below a white lighthouse at dawn, droplets frozen in golden light, photorealistic, cinematic 16:9 film still"
+          }
+        },
+        {
+          "id": "shot_02b",
+          "description": "Close on spray drifting through golden light after the impact.",
+          "prompt": "Close-up cinematic shot of sea spray and mist drifting through golden dawn light above dark rocks, droplets sparkling, slow drifting motion, shallow depth of field, photorealistic, 16:9 film look",
+          "camera": "Close-up, shallow focus, drifting",
+          "duration": 4,
+          "frames": {
+            "start": "Close-up still of dense sea spray and mist hanging in golden dawn light above dark wet rocks, backlit droplets sparkling, shallow depth of field, photorealistic, cinematic 16:9 film still",
+            "end": "Close-up still of thinning sea mist drifting through warm golden dawn light, dark rocks softly out of focus below, photorealistic, cinematic 16:9 film still"
+          }
+        }
+      ]
+    },
+    {
+      "id": "scn_03_stairs",
+      "title": "Spiral stairs",
+      "scriptExcerpt": "INT. LIGHTHOUSE STAIR — CONTINUOUS\nWren, the young apprentice, climbs the narrow spiral of iron stairs, lamp oil can in hand. Shafts of warm dawn light cut through the small windows; dust motes turn in the beams.",
+      "synopsis": "Inside the tower: Wren climbs the spiral stairs toward the lamp room as dawn light cuts through the windows.",
+      "location": "Tower Interior",
+      "characters": ["Wren"],
+      "shots": [
+        {
+          "id": "shot_03a",
+          "description": "Tracking up the spiral staircase behind Wren, dawn light through the windows.",
+          "prompt": "Interior of a white lighthouse: cinematic tracking shot climbing a narrow spiral iron staircase upward, shafts of warm dawn light through small windows, dust motes, handheld subtle movement, photorealistic, 16:9 film look",
+          "camera": "Handheld tracking, climbing",
+          "duration": 7,
+          "frames": {
+            "start": "Interior still at the base of a narrow spiral iron staircase in a whitewashed lighthouse, deep green painted ironwork curving upward, a teenage apprentice with short dark tousled hair and a cream fisherman's jumper starting to climb with a brass oil can, warm dawn light shafts through porthole windows, dust motes, photorealistic, cinematic 16:9 film still",
+            "end": "Interior still looking up a narrow spiral iron staircase in a whitewashed lighthouse, a teenage apprentice in a cream fisherman's jumper near the top of frame silhouetted against warm light from the lamp room above, dust motes in dawn light shafts, photorealistic, cinematic 16:9 film still"
+          }
+        }
+      ]
+    },
+    {
+      "id": "scn_04_beacon",
+      "title": "Beacon sweep",
+      "scriptExcerpt": "INT. LAMP ROOM — CONTINUOUS\nThe Keeper stands silhouetted against the glass as the great beacon makes its final rotation of the night, the beam sweeping past us in blue and gold.",
+      "synopsis": "The finale: the Keeper watches the great lamp make its last rotation of the night as dawn takes over.",
+      "location": "Tower Interior",
+      "characters": ["The Keeper"],
+      "elements": ["The Beacon Lamp"],
+      "shots": [
+        {
+          "id": "shot_04a",
+          "description": "The Keeper silhouetted in the lamp room as the beacon sweeps past camera.",
+          "prompt": "Silhouette of a lighthouse keeper in the glass lamp room as the rotating beacon light sweeps past camera at dawn, blue and gold color grade, cinematic interior, photorealistic, 16:9 film look",
+          "camera": "Interior wide, static, beacon rotates",
+          "duration": 8,
+          "frames": {
+            "start": "Interior still of a lighthouse lamp room at dawn: a weathered keeper in his late 60s with a flat cap and oilskin coat silhouetted against wraparound glass windows, the massive Fresnel lens beacon dark beside him, blue pre-dawn sky outside, blue and gold color grade, photorealistic, cinematic 16:9 film still",
+            "end": "Interior still of a lighthouse lamp room: the great Fresnel lens beacon blazing warm gold mid-rotation, lens flare filling half the frame, the silhouetted keeper in flat cap and oilskin coat standing calm beside it, dawn sky through the glass, blue and gold color grade, photorealistic, cinematic 16:9 film still"
+          }
+        }
+      ]
+    }
+  ]
+}

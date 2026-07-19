@@ -4,6 +4,7 @@ import { classifyPath } from './watcher'
 const roots = {
   gallery: '/home/u/.genmedia/gallery',
   storyboard: '/home/u/project/storyboard.json',
+  storyDb: '/home/u/project/story.db',
 }
 
 describe('classifyPath', () => {
@@ -36,5 +37,16 @@ describe('classifyPath', () => {
     expect(classifyPath('/home/u/.genmedia/gallery/sessions/../last-session.json', roots)).toBe(
       'gallery',
     )
+  })
+
+  it('classifies the story DB file and its SQLite siblings as story changes', () => {
+    expect(classifyPath('/home/u/project/story.db', roots)).toBe('story')
+    expect(classifyPath('/home/u/project/story.db-wal', roots)).toBe('story')
+    expect(classifyPath('/home/u/project/story.db-shm', roots)).toBe('story')
+  })
+
+  it('does not treat other project files as story changes', () => {
+    expect(classifyPath('/home/u/project/story.db.backup/x', roots)).toBeUndefined()
+    expect(classifyPath('/home/u/project/story2.db', roots)).toBeUndefined()
   })
 })

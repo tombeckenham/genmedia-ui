@@ -11,3 +11,8 @@ dist-ssr
 .vinxi
 __unconfig*
 todos.json
+
+# story engine sqlite dbs (one per project folder)
+story.db
+story.db-wal
+story.db-shm

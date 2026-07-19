@@ -22,6 +22,8 @@ timeline, and writes a single `h264 + aac` MP4.
 ```bash
 node <this-skill-dir>/scripts/stitch.ts <video1> <video2> [...] \
   [--music <audio-file>] \
+  [--mix]                   # mix music WITH the clips' audio (default: replace)
+  [--music-gain <0..1>]     # music level; defaults to 0.5 with --mix, 1 otherwise
   [--out <file.mp4>]        # default ./stitched.mp4 (written atomically)
   [--port <n>]              # default: random free port
   [--no-open]               # don't open the browser (you navigate yourself)
@@ -41,11 +43,13 @@ Music: mp3/m4a/aac/wav/ogg/flac (also mp4/webm audio).
   hevc/vp9/av1 by encoder support). Mixed resolutions are letterboxed into
   the first clip's frame size (`contain`). Each clip boundary starts on a
   keyframe.
-- **Audio**: with `--music`, the music track replaces all clip audio and is
-  laid under the full cut, looping if shorter and trimmed to the video
-  length. Without `--music`, the clips' own audio is carried through
-  (normalized to 48 kHz stereo AAC); if no clip has audio the output is
-  video-only.
+- **Audio**: with `--music` alone, the music track replaces all clip audio
+  and is laid under the full cut, looping if shorter and trimmed to the
+  video length. Add `--mix` to keep the clips' own audio and blend the
+  music underneath it (Web Audio offline render; music ducked to 0.5 by
+  default, tune with `--music-gain`). Without `--music`, the clips' own
+  audio is carried through (normalized to 48 kHz stereo AAC); if no clip
+  has audio the output is video-only.
 - Requires a WebCodecs browser (Chrome/Edge). The whole pipeline is local —
   nothing is uploaded.
 

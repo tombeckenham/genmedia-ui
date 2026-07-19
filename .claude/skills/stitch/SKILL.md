@@ -1,13 +1,15 @@
 ---
 name: stitch
 description: >
-  Stitch a list of video clips into one MP4 — optionally laying a music track
-  under the whole cut — using a local WebCodecs page. Use whenever the user
-  asks to "stitch these videos", "join/combine/concatenate clips", "assemble
-  the takes into one video", "add music under the cut", or wants a single
-  deliverable MP4 from several generated shots. Runs entirely locally: a tiny
-  server opens scripts/stitch.html in the browser, the page decodes and
-  re-encodes with WebCodecs, and the result is saved back to disk.
+  Stitch a list of video clips into one MP4 — optionally adding a music track,
+  either replacing the clips' audio or mixed underneath it — using a local
+  WebCodecs page. Use whenever the user asks to "stitch these videos",
+  "join/combine/concatenate clips", "assemble the takes into one video", "add
+  music under the cut", "mix music with the audio", "keep the dialogue and add
+  music", or wants a single deliverable MP4 from several generated shots. Runs
+  entirely locally: a tiny server opens a stitcher page in the browser, the
+  page decodes and re-encodes with WebCodecs, and the result is saved back to
+  disk.
 ---
 
 # stitch workflow
@@ -46,6 +48,12 @@ Music: mp3/m4a/aac/wav/ogg/flac (also mp4/webm audio).
   default, tune with `--music-gain`). Without `--music`, the clips' own
   audio is carried through (normalized to 48 kHz stereo AAC); if no clip
   has audio the output is video-only.
+- **Choosing replace vs mix**: if the clips carry audio worth keeping
+  (dialogue, generated sound effects, ambience) and the user wants music
+  too, use `--music … --mix`. Use `--music` alone when the clips are
+  silent or the user explicitly wants their audio replaced. When the user
+  says the music is too loud/quiet in a mix, re-run with a different
+  `--music-gain` (0.3 quiet bed → 0.7 prominent).
 - Requires a WebCodecs browser (Chrome/Edge). The whole pipeline is local —
   nothing is uploaded.
 

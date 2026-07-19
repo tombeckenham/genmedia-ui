@@ -1,0 +1,67 @@
+---
+name: stitch
+description: >
+  Stitch a list of video clips into one MP4 — optionally laying a music track
+  under the whole cut — using a local WebCodecs page. Use whenever the user
+  asks to "stitch these videos", "join/combine/concatenate clips", "assemble
+  the takes into one video", "add music under the cut", or wants a single
+  deliverable MP4 from several generated shots. Runs entirely locally: a tiny
+  server opens scripts/stitch.html in the browser, the page decodes and
+  re-encodes with WebCodecs, and the result is saved back to disk.
+---
+
+# stitch workflow
+
+`node scripts/stitch.ts` (run from the genmedia-ui repo root) starts a local
+HTTP server, opens a stitcher page in the default browser, and blocks until
+the page has produced the final MP4 and POSTed it back. The page decodes
+every clip with WebCodecs (via mediabunny), re-encodes them back-to-back
+onto one timeline, and writes a single `h264 + aac` MP4.
+
+```bash
+node scripts/stitch.ts <video1> <video2> [...] \
+  [--music <audio-file>] \
+  [--out <file.mp4>]        # default ./stitched.mp4 (written atomically)
+  [--port <n>]              # default: random free port
+  [--no-open]               # don't open the browser (you navigate yourself)
+  [--stay]                  # keep serving after save (default: exit on save)
+```
+
+Clip order = argument order. Accepted video inputs: mp4/m4v/mov/webm/mkv.
+Music: mp3/m4a/aac/wav/ogg/flac (also mp4/webm audio).
+
+## Behavior
+
+- **Video**: each clip is fully re-encoded (h264 preferred, falls back to
+  hevc/vp9/av1 by encoder support). Mixed resolutions are letterboxed into
+  the first clip's frame size (`contain`). Each clip boundary starts on a
+  keyframe.
+- **Audio**: with `--music`, the music track replaces all clip audio and is
+  laid under the full cut, looping if shorter and trimmed to the video
+  length. Without `--music`, the clips' own audio is carried through
+  (normalized to 48 kHz stereo AAC); if no clip has audio the output is
+  video-only.
+- Requires a WebCodecs browser (Chrome/Edge). The whole pipeline is local —
+  nothing is uploaded.
+
+## Driving it as an agent
+
+Run it in the background and watch stdout — every line is JSON:
+
+1. First line: `{"url": "http://127.0.0.1:<port>/", "videos": n, "music": ..., "out": ...}`.
+   The browser opens automatically (unless `--no-open`) and stitching starts
+   with no user interaction.
+2. Page-side logs/errors are proxied back as `{"page": "..."}` lines — check
+   these if nothing gets saved (e.g. a clip with no video track, or an
+   unsupported codec).
+3. Success line: `{"saved": "<abs path>", "bytes": n}` — then the process
+   exits by itself (unless `--stay`). Treat that line as completion; verify
+   with `ffprobe` if the result matters.
+
+A short clip list finishes in seconds; budget roughly real-time for longer
+cuts (decode + encode is faster than realtime on Apple Silicon).
+
+Typical hand-off from the story/storyboard flow: pick each shot's selected
+take file (see the story skill — `show sequence` lists generation paths
+relative to the project dir), pass them in scene order, add the project's
+music bed with `--music`, and `--out <projectDir>/<name>.mp4`.

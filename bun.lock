@@ -27,7 +27,7 @@
         "clsx": "^2.1.1",
         "drizzle-orm": "^1.0.0-rc.4",
         "lucide-react": "^0.577.0",
-        "mediabunny": "^1.50.8",
+        "mediabunny": "^1.50.9",
         "nitro": "^3.0.260610-beta",
         "radix-ui": "^1.6.2",
         "react": "^19.2.0",
@@ -1215,7 +1215,7 @@
 
     "media-typer": ["media-typer@1.1.0", "", {}, "sha512-aisnrDP4GNe06UcKFnV5bfMNPBUw4jsLGaWwWfnH3v02GnBuXX2MCVn5RbrWo0j3pczUilYblq7fQ7Nw2t5XKw=="],
 
-    "mediabunny": ["mediabunny@1.50.8", "", { "dependencies": { "@types/dom-mediacapture-transform": "^0.1.11", "@types/dom-webcodecs": "0.1.13" } }, "sha512-LgykLyQzhdpo0V2yw3UXmOpj+b4JAGdpHBwsPE6kjSt8Za0d1VllD+FV7EGHBcdV4+oHUAo+yrqbVAWxNSDCPQ=="],
+    "mediabunny": ["mediabunny@1.50.9", "", { "dependencies": { "@types/dom-mediacapture-transform": "^0.1.11", "@types/dom-webcodecs": "0.1.13" } }, "sha512-dkv2xPuW7WxmiZrhV4yDzgqhdQcHdQ9g5xRyVIDNoxe8Bo+jnK71bdKMYj12LzJf5YV9hcsufBG9R41TFKfg9g=="],
 
     "merge-descriptors": ["merge-descriptors@2.0.0", "", {}, "sha512-Snk314V5ayFLhp3fkUREub6WtjBfPdCPY1Ln8/8munuLuiYhsABgBVWsozAG+MWMbVEvcdcpbi9R7ww22l9Q3g=="],
 

@@ -17,8 +17,43 @@ writing notes, queuing requests); **you drive the CLI** (generating takes,
 downloading them, recording them). You edit the same file, so treat it as
 live shared state, never as something you own.
 
-Load the `genmedia` skill for how to run models; this skill is only about the
-board contract and the collaboration loop.
+Load the `genmedia` skill for how to run models; this skill covers the board
+contract, the collaboration loop, and getting the board in front of the human.
+
+## Step zero: open the board and hand the human the link
+
+The board is the Mission Control app (genmedia-ui). The loop only works if the
+human can see it — so before you start generating, make sure the app is
+running against **this** project and give the human a clickable link.
+
+1. **Probe for a running board.** Mission Control answers
+   `GET /api/health` with `{"app":"mission-control","projectDir":"…"}`:
+
+   ```bash
+   for port in 3000 3001 3002 3003; do
+     curl -sf --max-time 1 "http://localhost:$port/api/health" && echo " ← port $port"
+   done
+   ```
+
+   Use the server whose `projectDir` is this project's absolute path. A server
+   whose `projectDir` differs is showing a different project — don't reuse it.
+
+2. **Not running? Start it** from a genmedia-ui checkout (clone once if the
+   human doesn't have one), in the background:
+
+   ```bash
+   git clone https://github.com/tombeckenham/genmedia-ui   # once
+   cd genmedia-ui && bun install                            # once
+   GENMEDIA_UI_PROJECT=/abs/path/to/project bun run dev     # keep running
+   ```
+
+   Vite prints the real URL (`Local: http://localhost:3000/` — it auto-picks
+   the next free port if 3000 is busy); confirm with the health probe.
+
+3. **Open it and show the link.** `open http://localhost:<port>/` (macOS;
+   `xdg-open` on Linux), and **always print the URL in chat** so the human can
+   click it — e.g. `Board: http://localhost:3000/`. Repeat the link whenever
+   you tell them takes are ready to review.
 
 ## Two rules that never bend
 

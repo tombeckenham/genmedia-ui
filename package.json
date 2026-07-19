@@ -12,7 +12,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "story": "tsx scripts/story.ts",
-    "stitch": "node scripts/stitch.ts",
+    "stitch": "node skills/stitch/scripts/stitch.ts",
     "typecheck": "tsc",
     "lint": "oxlint --type-aware",
     "format": "oxfmt && oxlint --fix",

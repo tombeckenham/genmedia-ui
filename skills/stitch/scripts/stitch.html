@@ -102,22 +102,6 @@
       <a id="download">download</a>
     </main>
     <script type="module">
-      import {
-        ALL_FORMATS,
-        AudioSampleSink,
-        AudioSampleSource,
-        BufferSource,
-        BufferTarget,
-        Input,
-        Mp4OutputFormat,
-        Output,
-        QUALITY_HIGH,
-        QUALITY_MEDIUM,
-        VideoSampleSink,
-        VideoSampleSource,
-        canEncodeVideo,
-      } from '/mediabunny.mjs'
-
       const manifest = '__MANIFEST__'
 
       const statusEl = document.getElementById('status')
@@ -149,6 +133,31 @@
       function setProgress(fraction) {
         progressEl.style.width = `${Math.min(100, Math.round(fraction * 100))}%`
       }
+
+      // Served from local node_modules when available, jsdelivr otherwise.
+      let mediabunny
+      try {
+        mediabunny = await import(manifest.bundleUrl)
+      } catch (err) {
+        setStatus(`Failed to load mediabunny from ${manifest.bundleUrl}: ${err}`, 'error')
+        await serverLog(`ERROR failed to load mediabunny from ${manifest.bundleUrl}: ${err}`)
+        throw err
+      }
+      const {
+        ALL_FORMATS,
+        AudioSampleSink,
+        AudioSampleSource,
+        BufferSource,
+        BufferTarget,
+        Input,
+        Mp4OutputFormat,
+        Output,
+        QUALITY_HIGH,
+        QUALITY_MEDIUM,
+        VideoSampleSink,
+        VideoSampleSource,
+        canEncodeVideo,
+      } = mediabunny
 
       async function loadInput(url, name) {
         const response = await fetch(url)

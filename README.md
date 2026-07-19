@@ -43,7 +43,7 @@ GENMEDIA_UI_PROJECT=/path/to/your/project bun run dev
 `GENMEDIA_UI_PROJECT` is the project directory that holds `storyboard.json` and
 the downloaded `takes/` (defaults to the current working directory if unset).
 Point a Claude Code agent at that **same** directory, install the companion
-[`storyboard` skill](#the-storyboard-skill), and let it drive the `genmedia`
+[`storyboard` skill](#the-storyboard-and-stitch-skills), and let it drive the `genmedia`
 CLI — as it generates, the board fills in.
 
 > Want to see it immediately? This repo ships a finished example in
@@ -158,31 +158,34 @@ board.
 
 ---
 
-## The `storyboard` skill
+## The `storyboard` and `stitch` skills
 
-`docs/skill/storyboard/` is the contract that teaches a Claude Code agent how to
-collaborate with the board — the schema, the `takes/<scene-id>/` download
-convention, async job tracking, and the drain-the-direction-queue habit. Install
-it alongside the CLI's own `genmedia` skill:
+`skills/storyboard/` is the contract that teaches a Claude Code agent how to
+collaborate with the board — opening it and handing you the link, the schema,
+the `takes/<scene-id>/` download convention, async job tracking, and the
+drain-the-direction-queue habit. `skills/stitch/` turns a list of clips
+into one MP4 (optional music bed) via a local WebCodecs page. Install them
+alongside the CLI's own `genmedia` skill:
 
 ```
 # One-liner, straight from GitHub (inside Claude Code):
 /plugin marketplace add tombeckenham/genmedia-ui
 /plugin install storyboard@genmedia-ui
+/plugin install stitch@genmedia-ui
 ```
 
 ```bash
 # Or copy the folder:
-cp -r docs/skill/storyboard ~/.claude/skills/          # user-level, or
-cp -r docs/skill/storyboard /path/to/project/.claude/skills/   # project-level
+cp -r skills/storyboard ~/.claude/skills/          # user-level, or
+cp -r skills/storyboard /path/to/project/.claude/skills/   # project-level
 ```
 
 The skill is plain `SKILL.md` (an open format), so it also works in other
 agents — `~/.codex/skills/` for OpenAI Codex, `~/.grok/skills/` for Grok Build
 (which also reads Claude Code skill locations directly). See
-[docs/skill/README.md](./docs/skill/README.md).
+[skills/README.md](./skills/README.md).
 
-See [`docs/skill/README.md`](./docs/skill/README.md) for details.
+See [`skills/README.md`](./skills/README.md) for details.
 
 ---
 

@@ -90,20 +90,29 @@ const outPath = path.resolve(flags.out ?? 'stitched.mp4')
 const requestedPort = flags.port ? Number.parseInt(flags.port, 10) : 0
 if (Number.isNaN(requestedPort)) fail(`invalid --port: ${flags.port ?? ''}`)
 
-// Resolve the mediabunny browser bundle from the installed package (its
-// exports map only exposes ".", so walk up from the resolved entry point
-// to the package root, wherever the entry lives inside dist/).
-const require = createRequire(import.meta.url)
-let mediabunnyRoot = path.dirname(require.resolve('mediabunny'))
-while (
-  path.basename(mediabunnyRoot) !== 'mediabunny' &&
-  mediabunnyRoot !== path.dirname(mediabunnyRoot)
-) {
-  mediabunnyRoot = path.dirname(mediabunnyRoot)
+// Resolve the mediabunny browser bundle from a locally installed package
+// (its exports map only exposes ".", so walk up from the resolved entry
+// point to the package root, wherever the entry lives inside dist/). When
+// the skill runs standalone with no node_modules around, the page imports
+// the same bundle from the jsdelivr CDN instead.
+const MEDIABUNNY_CDN =
+  'https://cdn.jsdelivr.net/npm/mediabunny@1.50.9/dist/bundles/mediabunny.min.mjs'
+
+function resolveMediabunnyBundle(): string | null {
+  try {
+    const require = createRequire(import.meta.url)
+    let root = path.dirname(require.resolve('mediabunny'))
+    while (path.basename(root) !== 'mediabunny' && root !== path.dirname(root)) {
+      root = path.dirname(root)
+    }
+    const bundle = path.join(root, 'dist/bundles/mediabunny.mjs')
+    return existsSync(bundle) ? bundle : null
+  } catch {
+    return null
+  }
 }
-const mediabunnyBundle = path.join(mediabunnyRoot, 'dist/bundles/mediabunny.mjs')
-if (!existsSync(mediabunnyBundle))
-  fail(`mediabunny bundle not found at ${mediabunnyBundle} — run bun install`)
+
+const mediabunnyBundle = resolveMediabunnyBundle()
 
 const htmlTemplate = readFileSync(new URL('./stitch.html', import.meta.url), 'utf8')
 
@@ -111,6 +120,7 @@ const manifest = {
   videos: videos.map((v, i) => ({ name: path.basename(v.path), url: `/media/${i}` })),
   music: music ? { name: path.basename(music.path), url: '/music' } : null,
   outName: path.basename(outPath),
+  bundleUrl: mediabunnyBundle ? '/mediabunny.mjs' : MEDIABUNNY_CDN,
 }
 // <-escape so a "</script>" in a filename cannot break out of the tag.
 const manifestJson = JSON.stringify(manifest).replaceAll('<', '\\u003c')
@@ -149,7 +159,7 @@ async function handle(req: http.IncomingMessage, res: http.ServerResponse): Prom
     return
   }
 
-  if (req.method === 'GET' && url === '/mediabunny.mjs') {
+  if (req.method === 'GET' && url === '/mediabunny.mjs' && mediabunnyBundle) {
     serveFile(res, mediabunnyBundle, 'text/javascript')
     return
   }

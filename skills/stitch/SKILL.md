@@ -6,27 +6,31 @@ description: >
   asks to "stitch these videos", "join/combine/concatenate clips", "assemble
   the takes into one video", "add music under the cut", or wants a single
   deliverable MP4 from several generated shots. Runs entirely locally: a tiny
-  server opens scripts/stitch.html in the browser, the page decodes and
-  re-encodes with WebCodecs, and the result is saved back to disk.
+  server opens a stitcher page in the browser, the page decodes and re-encodes
+  with WebCodecs, and the result is saved back to disk.
 ---
 
 # stitch workflow
 
-`node skills/stitch/scripts/stitch.ts` (run from the genmedia-ui repo
-root, or `bun run stitch`) starts a local HTTP server, opens a stitcher page
-in the default browser, and blocks until the page has produced the final MP4
-and POSTed it back. The page decodes every clip with WebCodecs (via
-mediabunny), re-encodes them back-to-back onto one timeline, and writes a
-single `h264 + aac` MP4.
+The CLI lives in `scripts/stitch.ts` **next to this SKILL.md** — run it from
+the skill directory with plain node (Node 22+). It starts a local HTTP
+server, opens a stitcher page in the default browser, and blocks until the
+page has produced the final MP4 and POSTed it back. The page decodes every
+clip with WebCodecs (via mediabunny), re-encodes them back-to-back onto one
+timeline, and writes a single `h264 + aac` MP4.
 
 ```bash
-node skills/stitch/scripts/stitch.ts <video1> <video2> [...] \
+node <this-skill-dir>/scripts/stitch.ts <video1> <video2> [...] \
   [--music <audio-file>] \
   [--out <file.mp4>]        # default ./stitched.mp4 (written atomically)
   [--port <n>]              # default: random free port
   [--no-open]               # don't open the browser (you navigate yourself)
   [--stay]                  # keep serving after save (default: exit on save)
 ```
+
+In the genmedia-ui repo itself this is also exposed as `bun run stitch …`.
+mediabunny is served from local `node_modules` when installed; otherwise the
+page loads it from the jsdelivr CDN, so the skill works standalone.
 
 Clip order = argument order. Accepted video inputs: mp4/m4v/mov/webm/mkv.
 Music: mp3/m4a/aac/wav/ogg/flac (also mp4/webm audio).

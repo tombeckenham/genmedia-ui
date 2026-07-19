@@ -16,6 +16,20 @@ It complements the `genmedia` skill that ships with the
 [`genmedia` CLI](https://www.npmjs.com/package/@fal-ai/genmedia-cli) (which
 covers running models); install both.
 
+## `stitch`
+
+Turns a list of video clips into a single deliverable MP4, optionally with a
+music track laid under the whole cut. `scripts/stitch.ts` (bundled inside the
+skill folder) serves a local WebCodecs page that decodes each clip, re-encodes
+them back-to-back (h264 + AAC, letterboxing mixed resolutions), previews the
+result, and saves it back to disk — all locally, nothing uploaded. mediabunny
+is served from `node_modules` when present, from the jsdelivr CDN otherwise,
+so the skill works standalone.
+
+```
+/plugin install stitch@genmedia-ui
+```
+
 ### Install
 
 **Straight from GitHub (Claude Code plugin marketplace)** — this repo is a
@@ -31,11 +45,11 @@ into the repo you're generating in):
 
 ```bash
 # User-level: available in every project
-cp -r docs/skill/storyboard ~/.claude/skills/
+cp -r skills/storyboard ~/.claude/skills/
 
 # or project-level: scoped to one project
 mkdir -p /path/to/your/project/.claude/skills
-cp -r docs/skill/storyboard /path/to/your/project/.claude/skills/
+cp -r skills/storyboard /path/to/your/project/.claude/skills/
 ```
 
 **Other agents** — `SKILL.md` is an open format, so the same folder works

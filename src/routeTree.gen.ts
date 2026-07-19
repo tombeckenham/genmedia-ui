@@ -15,6 +15,7 @@ import { Route as StoryIndexRouteImport } from './routes/story.index'
 import { Route as StorySequenceIdRouteImport } from './routes/story.$sequenceId'
 import { Route as SceneSceneIdRouteImport } from './routes/scene.$sceneId'
 import { Route as ApiMediaRouteImport } from './routes/api/media'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiEventsRouteImport } from './routes/api/events'
 
 const SequenceRoute = SequenceRouteImport.update({
@@ -47,6 +48,11 @@ const ApiMediaRoute = ApiMediaRouteImport.update({
   path: '/api/media',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiEventsRoute = ApiEventsRouteImport.update({
   id: '/api/events',
   path: '/api/events',
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/sequence': typeof SequenceRoute
   '/api/events': typeof ApiEventsRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/media': typeof ApiMediaRoute
   '/scene/$sceneId': typeof SceneSceneIdRoute
   '/story/$sequenceId': typeof StorySequenceIdRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/sequence': typeof SequenceRoute
   '/api/events': typeof ApiEventsRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/media': typeof ApiMediaRoute
   '/scene/$sceneId': typeof SceneSceneIdRoute
   '/story/$sequenceId': typeof StorySequenceIdRoute
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/sequence': typeof SequenceRoute
   '/api/events': typeof ApiEventsRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/media': typeof ApiMediaRoute
   '/scene/$sceneId': typeof SceneSceneIdRoute
   '/story/$sequenceId': typeof StorySequenceIdRoute
@@ -87,6 +96,7 @@ export interface FileRouteTypes {
     | '/'
     | '/sequence'
     | '/api/events'
+    | '/api/health'
     | '/api/media'
     | '/scene/$sceneId'
     | '/story/$sequenceId'
@@ -96,6 +106,7 @@ export interface FileRouteTypes {
     | '/'
     | '/sequence'
     | '/api/events'
+    | '/api/health'
     | '/api/media'
     | '/scene/$sceneId'
     | '/story/$sequenceId'
@@ -105,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/sequence'
     | '/api/events'
+    | '/api/health'
     | '/api/media'
     | '/scene/$sceneId'
     | '/story/$sequenceId'
@@ -115,6 +127,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SequenceRoute: typeof SequenceRoute
   ApiEventsRoute: typeof ApiEventsRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   ApiMediaRoute: typeof ApiMediaRoute
   SceneSceneIdRoute: typeof SceneSceneIdRoute
   StorySequenceIdRoute: typeof StorySequenceIdRoute
@@ -165,6 +178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiMediaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/events': {
       id: '/api/events'
       path: '/api/events'
@@ -179,6 +199,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SequenceRoute: SequenceRoute,
   ApiEventsRoute: ApiEventsRoute,
+  ApiHealthRoute: ApiHealthRoute,
   ApiMediaRoute: ApiMediaRoute,
   SceneSceneIdRoute: SceneSceneIdRoute,
   StorySequenceIdRoute: StorySequenceIdRoute,

@@ -1,5 +1,5 @@
 {
   "name": "storyboard",
   "description": "Collaborate with the Mission Control storyboard board while generating media with the genmedia CLI.",
-  "version": "1.0.0"
+  "version": "1.1.0"
 }

@@ -71,7 +71,7 @@ The "mission control" feel; most demoable per unit effort.
 
 ### Phase 6 — Close the loop with Claude
 
-1. Companion skill (`docs/skill/` → installed as `storyboard` skill): teaches Claude the storyboard.json schema, the scene_id naming convention for `--download` paths, recording request_ids for async jobs, and the habit: _before generating, re-read the board; treat notes + rejected takes as direction._
+1. Companion skill (`skills/` → installed as `storyboard` skill): teaches Claude the storyboard.json schema, the scene_id naming convention for `--download` paths, recording request_ids for async jobs, and the habit: _before generating, re-read the board; treat notes + rejected takes as direction._
 2. "Direction queue": UI writes structured requests (`regenerate scene 2 with note X`) into `storyboard.json.requests[]`; skill tells Claude to drain them.
 3. Stretch — schema-driven tweak forms: `genmedia schema <endpoint> --json` → auto-generated shadcn form → re-run via server shell-out.
 
